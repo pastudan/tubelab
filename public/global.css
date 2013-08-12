@@ -1,0 +1,278 @@
+		body{
+			background-color: #1C1A18;
+			overflow: hidden;
+			text-align: center;
+			font-family: "Lucida Grande", tahoma;
+			color: white;
+			margin:0;
+			padding:0;
+		}
+		a{
+			color: white;
+		}
+		h2{
+			float: left;
+			display: block;
+			margin:0 5px;
+			padding: 0 3px;
+			font-size: 12px;
+			border-radius: 3px; 
+		}
+		#container{
+			width: 800px;
+			margin: 0 auto;
+			text-align: center;
+		}
+		#player_spotlight{
+			/* background: url(images/spotlight.png) bottom no-repeat; */
+			margin: 0 auto;
+			padding: 15px 0 15px 0;
+		}
+			#player_container_border{
+				border: 1px solid #1C1A18;
+				margin: 0 auto;
+				padding: 9px 9px 8px 9px;
+				background: #7e7975; /* Old browsers */
+				background: -moz-linear-gradient(top, #7e7975 0%, #5f5850 70%, #7e7975 87%); /* FF3.6+ */
+				background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#7e7975), color-stop(70%,#5f5850), color-stop(87%,#7e7975)); /* Chrome,Safari4+ */
+				background: -webkit-linear-gradient(top, #7e7975 0%,#5f5850 70%,#7e7975 87%); /* Chrome10+,Safari5.1+ */
+				background: -o-linear-gradient(top, #7e7975 0%,#5f5850 70%,#7e7975 87%); /* Opera11.10+ */
+				background: -ms-linear-gradient(top, #7e7975 0%,#5f5850 70%,#7e7975 87%); /* IE10+ */
+				filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#7e7975', endColorstr='#7e7975',GradientType=0 ); /* IE6-9 */
+				background: linear-gradient(top, #7e7975 0%,#5f5850 70%,#7e7975 87%); /* W3C */
+			}
+			#player_container{
+				width: 623px;
+				height: 384px;
+				border: 1px #8b8b8b;
+				border-style: none none solid none;
+				position: relative;
+				margin: 0 auto;
+				background: #b9090b;
+			}
+			#player_spotlight iframe{
+				position: absolute;
+			}
+
+		#controls{
+			position: relative;
+			height: 40px;
+			margin-top: 4px;
+			text-align: left;
+		}
+		#playpause{
+			background: url("images/play_icon.png") center top no-repeat;
+			left: 0;
+		}
+		#fullscreen{
+			background: url("images/play_icon.png") center top no-repeat;
+			left: 730px;
+		}
+		.lg_button{
+			top: 0;
+			position: absolute;
+			text-align: center;
+			height: 40px;
+			width: 70px;
+			border-radius: 2px;
+			
+		}
+		#playpause:hover{
+			background-color:#787471;
+			background-position: center -40px;
+		}
+		#fullscreen:hover{
+			background-color:#787471;
+			background-position: center -40px;
+		}
+		#time_container{
+			position: absolute;
+			left: 75px;
+			top: 16px;
+			background: #7E7975;
+			border-radius: 3px;
+			width: 25px;
+			height: 24px;
+			text-align: center;
+		}
+		#curtime{
+			background: #C8C7C6;
+			border-radius: 2px;
+			margin: 1px;
+			width: 23px;
+			height: 11px;
+			color: #333333;
+		}
+		#curplaying{
+			width: 200px;
+			height: 24px;
+			position: absolute;
+			top: 16px;
+			left: 105px;
+			border-left: 2px solid cyan;
+			padding-left: 2px;
+		}
+		#upnext{
+			width: 200px;
+			height: 24px;
+			position: absolute;
+			top: 16px;
+			left: 310px;
+			border-left: 2px solid orange;
+			padding-left: 2px;
+		}
+		#logo{
+			position: absolute;
+			left: 500px;
+			top: 14px;
+		}
+		#info{
+			display: inline-block;
+		}
+		#seek{
+			position: absolute;
+			left: 75px;
+			top: 0px;
+			background: #373737;
+			height: 10px;
+			width: 648px;
+			border: 1px solid #636363;
+			border-radius: 3px;
+		}
+		#progress{
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background: #8d150e;
+			border-radius: 3px;
+			height: 10px;
+			width: 0px;
+		}
+		#loaded{
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background: #7E7975;
+			border-radius: 3px;
+			height: 10px;
+			width: 0px;
+		}
+		#timetooltip{
+			position: absolute;
+			display:none;
+			width: 23px;
+			height: 11px;
+			border: 1px solid #7E7975;
+			background: #C8C7C6;
+			border-radius: 2px;
+			color: #333333;
+			z-index: 10;
+		}
+		#seektooltip{
+			position: absolute;
+			display: none;
+			top: 0;
+			height: 10px;
+			width: 1px;
+			z-index: 10;
+			background: #B9090B;
+		}
+		#controls_footer{
+			height: 43px;
+		}
+		#search_container{
+			width: 390px;
+			height: 100px;
+			float: left;
+			padding: 5px;
+		}
+			#search_controls{
+				background: url(images/search.png);
+				height: 49px;
+				width: 358px;
+			}
+		#playlist_container{
+			width:390px;
+			height: 10000px;
+			float: left;
+			padding: 5px;
+		}
+			#playlist_controls{
+				background: url(images/public_url.png);
+				height: 49px;
+				width: 358px;
+			}
+		.sf{
+			font-size: 8px;
+		}
+		.mf{
+			font-size: 13px;
+		}
+		.gray{
+			color: #999998;
+		}
+		.subtitle{
+			float: left;
+			margin-left: 4px;
+		}
+		.vid_item{
+			padding: 3px;
+			height: 36px;
+		}
+		.vid_item_title{
+			margin: 8px 0 0 3px;
+			float: left;
+			width: 285px;
+			height: 20px;
+			overflow:hidden;
+		}
+		.thumb{
+			float: left;
+			clear:both;
+			height: 36px;
+			width: 64px;
+			border-radius: 3px;
+			background-position: center center;
+			position: relative;
+			overflow: hidden;
+		}
+		.thumb img{
+			margin-left:
+			width: 64px;
+			height: 48px;
+			top: -6px;
+			left: 0;
+			position: absolute;
+		}
+		a.vid_item_link:hover{
+			border-radius: 3px;
+			background-color: #787471;
+			text-decoration:underline;
+		}
+		a.vid_item_link{
+			display:block;
+			text-decoration:none;
+			text-align: left;
+			cursor: pointer;
+			cursor: hand;
+		}
+		.list_controls{
+			margin-bottom: 3px;
+		}
+		ul{
+			margin: 0px;
+			padding: 0;
+			/* height: 310px; */
+			/* height will need to be adjusted to screen size */
+		}
+		li{
+			list-style:none;
+			margin: 0;
+			padding: 0;
+		}
+		.ui-state-highlight{
+			height: 36px;
+			background-color: #7E7975;
+			border: 3px dotted white;
+			border-radius: 5px;
+		}
