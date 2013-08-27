@@ -44,10 +44,11 @@
 	<title>TubeLab</title>
 	<link rel="shortcut icon" href="favicon.gif" />
 	<link rel="stylesheet" href="global.css" TYPE="text/css" media="all">
-	<script type="text/javascript" src="scripts/jquery-1.5.2.min.js"></script> 
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script type="text/javascript" src="scripts/jquery-ui-1.8.14.custom.min.js"></script>
 	<script type="text/javascript" src="scripts/typewatch.js"></script> 
 	<script type="text/javascript" src="scripts/swfobject.js"></script>
+	<script type="text/javascript" src="scripts/screenfull.min.js"></script>
 	<script>
 		var plid;
 		var playlist = new Array();
@@ -67,6 +68,15 @@
 
 		
 		$(document).ready(function (){
+			$('#fullscreen').click(function () {
+			    if (screenfull.enabled) {
+			        screenfull.request();
+			    }
+			    $("#search_container").animate({"left":"0", "width":"0"});
+                            $("#playlist_container").animate({"right":"0", "width":"0"});
+			    resize();
+			});
+
 			var params = { allowScriptAccess: "always" };
 			var atts = { id: "player" };
 			swfobject.embedSWF("http://www.youtube.com/apiplayer?enablejsapi=1&version=3", "ytapiplayer", "4", "4", "8", null, null, params, atts);
@@ -121,7 +131,7 @@
 			
 			$("#playpause").click(function(){
 				if (player.getPlayerState() == 1){
-					player.pauseVideo();
+				player.pauseVideo();
 				} else if(player.getPlayerState() == 2) {
 					player.playVideo();
 				}
@@ -186,15 +196,17 @@
 		}
 		
 		function resize(){
-			/*
+			
 			browser = $.browser;
-			var is_fullscreen = ( //browser check
+			/* var is_fullscreen = ( //browser check
 				window.fullScreen || //firefox -- that was easy :D
 				((browser.webkit || (browser.msie && browser.version > 8)) && screen.width == window.outerWidth && screen.height == window.outerHeight) || //chrome & ie9+ (think this works for ie9...not sure yet)
-				(browser.msie && browser.version <= 8 && (screen.height-document.documentElement.clientHeight) < 30)); //iesuck
-			if (is_fullscreen){
+				(browser.msie && browser.version <= 8 && (screen.height-document.documentElement.clientHeight) < 30)); //iesuck */
+			var is_fullscreen = screenfull.isFullscreen;
+
+/*			if (is_fullscreen){
 				$('#player').css({
-				  
+				  'position' : 'absolute',
 				  'left' : '0px',
 				  'top' : '0px',
 				  'margin' : '0',
@@ -208,45 +220,51 @@
 				$('#player').css({
 				  'left' : 'auto',
 				  'top' : 'auto',
-				  'margin-top' : '28px',
+				  'margin' : 'auto',
 				  'width' : '623',
 				  'height' : '384'
 				});
 			}
-			
-			*/
-			var window_height = $(window).height();
+*/
+
+			var viewportWidth  = $(window).width()
+			  , viewportHeight = $(window).height()
 			
 			//use 3/5ths screen space to display video and controls. maybe let users set this in the future
-			var max_player_height = ((window_height * 3 / 5) - 92);
+			var max_player_height = ((viewportHeight * 3 / 5) - 92);
 			var player_height = (max_player_height > 438) ?  438 : max_player_height;
 			var player_width = player_height * 16 / 9;
 			
 			var offset;
 			
-			if (window_height < 280){
+			if (viewportHeight < 280){
 				//no video
 				$("#player_spotlight").css({'margin-left':'10000px', 'height':'1px'});
 				offset = 52;
-			} else if (window_height < 600){
+			} else if (viewportHeight < 600){
 				//slim video
 				$("#player_spotlight").css('padding','5px').css({'margin':'0 auto', 'height':'auto'});
 				$("#player_container_border").css({'padding':'0','border':'0'});
 				offset = 53 + player_height;
-				
-			} else {
+			} else if (viewportHeight > 600 && !is_fullscreen) {
 				//full video
 				$("#player_spotlight").css('padding','15px 0 15px 0').css({'margin':'0 auto', 'height':'auto'});
 				$("#player_container_border").css('padding','9px 9px 8px 9px');
 				offset = 94 + player_height;
+			} else {
+				//$("#player_spotlight").hide();
+				$("#player_spotlight").find("*").addBack().css({"padding":"0", "margin":"0", "border":"0"});
+				$("#container").css("margin", "0");
+				player_height = viewportHeight;
+				player_width = viewportWidth;
 			}
 			$("#player_container").height(player_height).width(player_width);
 			$("#player").height(player_height).width(player_width+2);
 			$("#player_container_border").width(player_width+2);
-			//var list_height = window_height - offset - 10
-			$("#search_container,#playlist_container").height(window_height - offset - 10);
-			//$("#playlist_container").height(window_height - offset - 10);
-			ul_height = window_height - offset - 10 - 52;
+			//var list_height = viewportHeight - offset - 10
+			$("#search_container,#playlist_container").height(viewportHeight - offset - 10);
+			//$("#playlist_container").height(viewportHeight - offset - 10);
+			ul_height = viewportHeight - offset - 10 - 52;
 			if ((playlist.length * 42) < ul_height){
 				//console.log("setting UL height to "+ul_height);
 				$("#sortable_playlist").height(ul_height);
@@ -363,7 +381,7 @@
 
 
 <body>
-	<div id="container">
+	<div id="container" class="clearfix">
 		<div id="timetooltip" class="sf"></div>
 		<div id="player_spotlight">
 			<div id="player_container_border">

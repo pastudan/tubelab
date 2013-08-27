@@ -65,7 +65,7 @@
 			left: 0;
 		}
 		#fullscreen{
-			background: url("images/play_icon.png") center top no-repeat;
+			background: url("images/fullscreen.png") center top no-repeat;
 			left: 730px;
 		}
 		.lg_button{
@@ -75,6 +75,7 @@
 			height: 40px;
 			width: 70px;
 			border-radius: 2px;
+			cursor: pointer;
 			
 		}
 		#playpause:hover{
@@ -276,3 +277,15 @@
 			border: 3px dotted white;
 			border-radius: 5px;
 		}
+
+.clearfix:before,
+.clearfix:after {
+    content: " "; /* 1 */
+    display: table; /* 2 */
+}
+.clearfix:after {
+    clear: both;
+}
+.clearfix {
+    *zoom: 1;
+}
