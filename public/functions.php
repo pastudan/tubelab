@@ -1,7 +1,9 @@
 <?php
+
+	require_once("../constants.php");
 	
 	function dbconnect(){
-		$conn = mysql_connect('localhost','tubelab_net',';ka0vxt(Dm3g') or die ('I cannot connect to the database because: ' . mysql_error());
+		$conn = mysql_connect(DB_HOST, DB_USERNAME, DB_PASSWORD) or die ('I cannot connect to the database because: ' . mysql_error());
 		if(! mysql_select_db('tubelab_net')){
 			die('<p>Couldn\'t select the database</p>');
 		}
