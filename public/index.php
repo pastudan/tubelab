@@ -45,9 +45,9 @@
 	<link rel="shortcut icon" href="favicon.gif" />
 	<link rel="stylesheet" href="global.css" TYPE="text/css" media="all">
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-	<script type="text/javascript" src="scripts/jquery-ui-1.8.14.custom.min.js"></script>
-	<script type="text/javascript" src="scripts/typewatch.js"></script> 
-	<script type="text/javascript" src="scripts/swfobject.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+	<script type="text/javascript" src="scripts/typewatch.js"></script>
+	<script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 	<script type="text/javascript" src="scripts/screenfull.min.js"></script>
 	<script>
 		var plid;
