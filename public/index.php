@@ -37,8 +37,7 @@
 	}
 
 ?>
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<!-- I have no intention of obfuscating the code used here, i'm just a minimalist. Source: http://tubelab.com/index.html.src  -->
+<!DOCTYPE html>
 <html> 
 <head>
 	<title>TubeLab</title>
@@ -49,6 +48,7 @@
 	<script type="text/javascript" src="scripts/typewatch.js"></script>
 	<script src="//ajax.googleapis.com/ajax/libs/swfobject/2.2/swfobject.js"></script>
 	<script type="text/javascript" src="scripts/screenfull.min.js"></script>
+	<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.14/jquery.jscrollpane.min.js"></script>
 	<script>
 		var plid;
 		var playlist = new Array();
@@ -123,11 +123,14 @@
 				wait:250
 			});
 			$(window).resize(resize);
+			
+			/*
 			$("#search_container,#playlist_container").hover(function (){
 				$(this).css('overflow', 'auto');
 			}, function (){
 				$(this).css('overflow', 'hidden');
 			});
+			*/
 			
 			$("#playpause").click(function(){
 				if (player.getPlayerState() == 1){
