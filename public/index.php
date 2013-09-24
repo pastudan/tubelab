@@ -420,9 +420,9 @@
 		
 		<div id="search_container"  class="list_container">
 			<div id="search_controls" class="list_controls">
-				<h2 style="float:right; margin-bottom: 2px;">Search</h2>
-				<div style="clear:both; background: #C8C7C6; border-radius: 3px; margin: 4px; height: 25px">
-					<input style="width: 344px; background:#C8C7C6; height: 25px; font-size: 18px; font-weight: bold; font-family: 'Lucida Grande', tahoma; border: none; margin: 0 3px; padding: 0;" id="search" type="text" />
+				<h2 class="tab_label">Search</h2>
+				<div class="input_container">
+					<input id="search" type="text" />
 				</div>
 			</div>
 			<ul id='sortable_searchlist' class='sortable'></ul>
