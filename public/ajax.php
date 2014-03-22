@@ -12,7 +12,8 @@
 	if ($_POST['method'] == 'search'){
 		$start=$_POST['start'];
 		$q=urlencode($_POST['q']);
-		$results = json_decode(file_get_contents("https://gdata.youtube.com/feeds/api/videos?q={$q}&alt=json&start-index={$start}&max-results=25&v=2"),1);
+        //todo: investigate using sockets, spdy, or some other persistent connection (or even CORS to offload requests to client)
+		$results = json_decode(file_get_contents("http://gdata.youtube.com/feeds/api/videos?q={$q}&alt=json&start-index={$start}&max-results=25&v=2"),1);
 		if ($results['feed']['openSearch$totalResults']['$t'] > 0){
 			$i = 0;
 			foreach ($results['feed']['entry'] as $result){

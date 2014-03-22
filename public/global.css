@@ -1,5 +1,5 @@
-*{
-    box-sizing: border-box;
+*, *:before, *:after {
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
 }
 
 body {
@@ -18,6 +18,11 @@ input, textarea{
 
 a {
     color: white;
+    text-decoration: none;
+}
+
+a:hover{
+    text-decoration: underline;
 }
 
 h2 {
@@ -79,6 +84,10 @@ h2 {
 #playpause {
     background: url("images/play_icon.png") center top no-repeat;
     left: 0;
+}
+#playpause.playing {
+    background: url("images/pause_icon.png") center top no-repeat;
+    background-size: 40px 80px;
 }
 
 #fullscreen {
@@ -162,10 +171,10 @@ h2 {
     left: 75px;
     top: 0px;
     background: #373737;
-    height: 10px;
-    width: 648px;
+    height: 12px;
+    width: 650px;
     border: 1px solid #636363;
-    border-radius: 3px;
+    border-radius: 2px;
 }
 
 #progress {
@@ -173,7 +182,7 @@ h2 {
     top: 0px;
     left: 0px;
     background: #8d150e;
-    border-radius: 3px;
+    border-radius: 2px;
     height: 10px;
     width: 0px;
 }
@@ -183,7 +192,7 @@ h2 {
     top: 0px;
     left: 0px;
     background: #7E7975;
-    border-radius: 3px;
+    border-radius: 2px;
     height: 10px;
     width: 0px;
 }
@@ -224,12 +233,18 @@ h2 {
 #search{
     background: #C8C7C6;
     border: 1px solid #606060;
-    border-radius: 3px;
+    border-radius: 5px;
     width: 100%;
     font-size: 18px;
     font-weight: bold;
-    padding: 3px;
+    padding: 3px 5px;
     margin: 0;
+    height: 29px;
+}
+
+#search:hover{
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
+    background: #efefef;
 }
 
 #search:focus{
@@ -254,29 +269,86 @@ h2 {
 .input_container{
     clear: both;
     border: 3px solid #7E7975;
-    border-radius: 4px;
-    border-top-right-radius: 0;
+    border-radius: 7px;
     background-color: #7E7975;
 }
 
+.input_container.left-tab{
+    border-top-right-radius: 0;
+}
+
+.input_container.right-tab{
+    border-top-left-radius: 0;
+}
+
 .tab_label{
-    float: right;
     border-radius: 0;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
     background: #7C7773;
     display: block;
     margin: 0px;
-    padding: 1px 5px;
     font-size: 12px;
+}
+
+.tab_label.right-tab{
+    float: left;
+    padding: 1px 5px;
+}
+
+.tab_label.left-tab{
+    float: right;
+    padding: 1px 5px 1px 30px;
+}
+
+.save-playlist{
+    float: right;
+    font-size: 11px;
+}
+
+#globe-container{
+    display: table-cell;
+    vertical-align: bottom;
+    height: 29px;
+}
+
+#url{
+    border-radius: 5px;
+    background: #C1C0BF;
+    display: table-cell;
+    color: black;
+    font-weight: bold;
+    font-size: 18px;
+    border: 1px solid #666666;
+    padding: 0 5px 0 5px;
+    width: 100%;
+    text-align: left;
+    vertical-align: middle;
+}
+
+#url:hover{
+    cursor: text;
+    border: 1px solid #5897fb;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
+    background: #efefef url("images/qr.png") no-repeat 0 20px;
+}
+
+#url, #search{
+    transition: all .3s;
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s
 }
 
 .sf {
     font-size: 8px;
+    height: 10px;
+    /*overflow: hidden;*/
 }
 
 .mf {
     font-size: 13px;
+    overflow: hidden;
+    height: 16px;
 }
 
 .gray {
@@ -290,7 +362,6 @@ h2 {
 
 .vid_item {
     padding: 3px;
-    height: 36px;
 }
 
 .vid_item_title {
@@ -357,16 +428,145 @@ li {
     border-radius: 5px;
 }
 
-.clearfix:before,
-.clearfix:after {
+
+/*Clearfix from http://nicolasgallagher.com/micro-clearfix-hack/*/
+.cf:before,
+.cf:after {
     content: " "; /* 1 */
     display: table; /* 2 */
 }
 
-.clearfix:after {
+.cf:after {
     clear: both;
 }
 
-.clearfix {
+.cf {
     *zoom: 1;
 }
+
+
+
+
+
+
+
+
+
+
+
+/*QR OVERLAY*/
+
+
+.collaborate {
+    display: none;
+    position: absolute;
+    width: 400px;
+    left: calc(50% - 400px/2);
+    top: calc(50% - 543px/2);
+    height: 543px;
+    background-color: #7E7975;
+    padding: 20px;
+    z-index: 20;
+    border-radius: 5px;
+    transition: all .4s;
+}
+.collaborate.active-devices {
+    width: 700px;
+    left: calc(50% - 700px/2);
+}
+.collaborate .share-container{
+    float: left;
+    width: 360px;
+}
+.collaborate h1{
+    font-size: 20px;
+    margin: 0 0 0 0;
+}
+.collaborate p{
+    font-size: 11px;
+    margin: 5px 0 25px 0;
+}
+.collaborate .url{
+    width: 100%;
+    padding: 10px;
+    background-color: #C8C7C6;
+    border-radius: 3px;
+    border: 1px solid #606060;
+    color: #000000;
+    font-size: 24px;
+    font-weight: bold;
+}
+.collaborate .or{
+    margin: -390px 0 0 85px;
+    margin-left: calc(50% - 35px/2);
+    border-radius: 90%;
+    background: #7E7975;
+    border: 1px;
+    border-color: #606060 #7E7975 #606060 #7E7975;
+    border-style: solid;
+    height: 35px;
+    width:35px;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 6px;
+    color: white;
+}
+.collaborate .qr{
+    margin-top: 24px;
+    padding: 55px;
+    height: 360px;
+    background: #C8C7C6;
+    border: 1px solid #606060;
+    border-radius: 3px;
+}
+.collaborate .device-list{
+    background-color: #C8C7C6;
+    border-radius: 3px;
+    float: left;
+    width: 0px;
+    height: 433px;
+    overflow-y: scroll;
+    text-align: left;
+    transition: all 0.4s;
+}
+.collaborate.active-devices .device-list{
+    border: 1px solid #606060;
+    width: 280px;
+    /*display: none;*/
+    margin-left: 20px;
+    position: relative;
+}
+.collaborate .device-list h3{
+    font-size: 20px;
+    color: #ccc;
+    background-color: #151413;
+    padding: 13px 20px;
+    margin: 0;
+}
+.collaborate .device-list ul{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.collaborate .device-list li{
+    padding: 20px;
+    margin-top: 2px;
+    background: #bcbbba;
+    background: -moz-linear-gradient(top,  #bcbbba 0%, #b5b4b3 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#bcbbba), color-stop(100%,#b5b4b3));
+    background: -webkit-linear-gradient(top,  #bcbbba 0%,#b5b4b3 100%);
+    background: -o-linear-gradient(top,  #bcbbba 0%,#b5b4b3 100%);
+    background: -ms-linear-gradient(top,  #bcbbba 0%,#b5b4b3 100%);
+    background: linear-gradient(to bottom,  #bcbbba 0%,#b5b4b3 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#bcbbba', endColorstr='#b5b4b3',GradientType=0 );
+
+}
+.collaborate.active-devices .device-list .action{
+    bottom: 0;
+    position: absolute;
+    width: 100%;
+    padding: 20px;
+    background-color: darkred;
+    text-align: center;
+}
+
