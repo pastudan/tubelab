@@ -4,7 +4,7 @@
     $detect = new Mobile_Detect;
     if ($detect->isMobile()){
         ?>
-        <!DOCTYPE html>
+        <!doctype html>
         <html>
         <head>
             <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
@@ -124,8 +124,8 @@
 	}
 
 ?>
-<!DOCTYPE html>
-<html> 
+<!doctype html>
+<html ng-app="sortableApp" ng-controller="ResultsCtrl">
 <head>
 	<title>TubeLab</title>
 	<link rel="shortcut icon" href="/images/favicon.png" />
@@ -133,12 +133,14 @@
 	<link rel="stylesheet" type="text/css" media="all" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
+    <script src="/scripts/angular-ui-sortable.js"></script>
+<!--  ^  TODO: put in cdnjs-->
 	<script src="//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/screenfull.js/1.0.4/screenfull.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.14/jquery.jscrollpane.min.js"></script>
 	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular-wizard/0.3.0/angular-wizard.min.js"></script>
     <script src="/scripts/typewatch.js"></script>
     <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>
 
@@ -216,17 +218,6 @@
         });
 
 		$(document).ready(function (){
-//
-//            plid = document.URL.split('/')[3];
-//            pin = document.URL.split('/')[4];
-//            socket.emit("browserConfirm", {
-//                plid: plid,
-//                pin: pin
-//            });
-//            socket.on('phoneConnect', function (data) {
-//                $("body").append(JsonHuman.format(data));
-//            });
-
 
             $(".collaborate .qr").qrcode({
                 text : "tubelab.net/abcd/1234",
@@ -244,9 +235,6 @@
                 fontname: 'Verdana',
                 fontcolor: '#AE0000'
             }).children("canvas").height(250);
-
-
-
 
 
 
@@ -274,8 +262,8 @@
 
 			resize();
 			plid = document.URL.split('/')[3];
-			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
-			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
+//			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
+//			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
 			if (plid != ''){
 				//console.log('plid found... ');
 				$("#url").html("tubelab.net/"+plid);
@@ -308,11 +296,14 @@
 			$(window).resize(resize);
 
 
-			$("#search_container,#playlist_container").hover(function (){
-				$(this).css('overflow', 'auto');
-			}, function (){
-				$(this).css('overflow', 'hidden');
-			});
+<!--            TODO: replace with slimscroll http://rocha.la/jQuery-slimScroll -->
+
+//
+//			$("#search_container,#playlist_container").hover(function (){
+//				$(this).css('overflow', 'auto');
+//			}, function (){
+//				$(this).css('overflow', 'hidden');
+//			});
 
 
 			$("#playpause").click(function(){
@@ -563,12 +554,105 @@
 								title:results[i].title,
 								ext_id:results[i].ext_id
 							});
-							$sortable_searchlist.append("<li id='search_"+temp_search_count+"_"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+results[i].ext_id+"' onclick=\"openVideo('searchlist',"+i+"); return false;\"><div class='vid_item cf'><div class='thumb'><img src='http://img.youtube.com/vi/"+results[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+results[i].title+"</div>"+(results[i].subtitle?"<div class='sf gray subtitle'>"+results[i].subtitle+"</div>":"")+"</div></a></li>");
+//							$sortable_searchlist.append("<li id='search_"+temp_search_count+"_"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+results[i].ext_id+"' onclick=\"openVideo('searchlist',"+i+"); return false;\"><div class='vid_item cf'><div class='thumb'><img src='http://img.youtube.com/vi/"+results[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+results[i].title+"</div>"+(results[i].subtitle?"<div class='sf gray subtitle'>"+results[i].subtitle+"</div>":"")+"</div></a></li>");
 						}
 					}
 				}
 			});
 		}
+
+
+
+
+
+
+        //Angular, yay!
+
+
+        var myapp = angular.module('sortableApp', ['ui.sortable']);
+
+        myapp.controller('ResultsCtrl', function ($scope) {
+
+            var tmpList = [];
+
+            $scope.results = [
+                {
+                    title:'learn angular',
+                    ext_id:'bFClhxM7LY4',
+                    subtitle: 'panda video!'
+                },
+                {
+                    title:"rosana, she's the sexy mama",
+                    ext_id:'v0aRb4rAq0I'
+                },
+                {
+                    title:'stuff',
+                    ext_id:'bFClhxM7LY4'
+                },
+                {
+                    title:'blah',
+                    ext_id:'bFClhxM7LY4'
+                }
+            ];
+
+            $scope.playlist = [
+                {
+                    title:'PL learn angular',
+                    ext_id:'bFClhxM7LY4',
+                    subtitle: 'panda video!'
+                },
+                {
+                    title:'PL tim mcgraw',
+                    ext_id:'bFClhxM7LY4'
+                },
+                {
+                    title:'PL stuff',
+                    ext_id:'bFClhxM7LY4'
+                },
+                {
+                    title:'PL blah',
+                    ext_id:'bFClhxM7LY4'
+                }
+            ];
+
+            $scope.sortableOptions = {
+                revert: 100,
+                helper: "clone",
+                placeholder: "ui-state-highlight",
+                connectWith: ".sortable"
+            };
+
+            $scope.openVideo = function(result) {
+                player.loadVideoById(result.ext_id, 0, "hd720");
+                //play video logic
+//                $scope.todos.push({text:$scope.todoText, done:false});
+//                $scope.todoText = '';
+            };
+
+            $scope.remaining = function() {
+                var count = 0;
+                angular.forEach($scope.todos, function(todo) {
+                    count += todo.done ? 0 : 1;
+                });
+                return count;
+            };
+
+            $scope.archive = function() {
+                var oldTodos = $scope.todos;
+                $scope.todos = [];
+                angular.forEach(oldTodos, function(todo) {
+                    if (!todo.done) $scope.todos.push(todo);
+                });
+            };
+        });
+
+
+
+
+
+
+
+
 	</script>
 </head> 
 
@@ -579,7 +663,7 @@
 
     <div class="collaborate">
         <h1>Collaborate</h1>
-        <p>Let friends help create a killer playlist. Or, just <a href="">share.</a></p>
+        <p>Let friends help create a killer playlist. Or, just <a href="#">share.</a></p>
 
         <div class="share-container">
             <div class="url">tubelab.net/ei3k/2402</div>
@@ -640,25 +724,42 @@
 					<input id="search" type="text" />
 				</div>
 			</div>
-			<ul id='sortable_searchlist' class='sortable'>
-<!--                <li ng-repeat="todo in todos"></li>-->
+			<ul ui-sortable="sortableOptions" ng-model="results" id='sortable_searchlist' class='sortable'>
+                <li ng-repeat="result in results" class="vid_item_link" ng-click="openVideo(result)">
+                    <div class='vid_item cf'>
+                        <div class='thumb'>
+                            <img src='http://img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
+                        </div>
+                        <div class='vid_item_title'>{{result.title}}</div>
+                        <div ng-show="result.subtitle" class='sf gray subtitle'>{{result.subtitle}}</div>
+                    </div>
+                </li>
 			</ul>
 		</div>
 		
 		<div id="playlist_container" class="list_container">
 			<div id="playlist_controls" class="list_controls">
 				<h2 class="tab_label right-tab">Public URL</h2>
-				<a href="index.html" class="save-playlist">Save Playlist(s)</a>
+				<a href="#" class="save-playlist">Save Playlist(s)</a>
 				<div class="input_container right-tab cf">
                     <div id="globe-container">
                         <img src="images/globe_24.png" />
                     </div>
                     <div id="url">
-                        tubelab.net/start
+                        Drag a song over...
                     </div>
 				</div>
 			</div>
-			<ul id='sortable_playlist' class='sortable'></ul>
+			<ul ui-sortable="sortableOptions" ng-model="playlist" id='sortable_playlist' class='sortable'>
+                <li ng-repeat="result in playlist" class="vid_item_link" ng-click="openVideo(result)">
+                    <div class='vid_item cf'>
+                        <div class='thumb'>
+                            <img src='http://img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
+                        </div>
+                        <div class='vid_item_title'>{{result.title}}</div>
+                    </div>
+                </li>
+			</ul>
 		</div>
 		
 	</div>
