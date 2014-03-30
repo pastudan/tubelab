@@ -143,6 +143,19 @@
     <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>
 
     <script>
+
+        //todo: take this out!
+        $(document).keypress(function(e){
+
+            switch (e.which) {
+                case 113:
+                    $(".collaborate").toggle();
+                    break;
+            }
+        });
+
+
+
 		var plid;
 		var playlist = new Array();
 		var searchlist;
@@ -171,7 +184,7 @@
         });
         socket.on('client-announce', function (data) {
             $(".collaborate").addClass("active-devices");
-            devicCount++;
+            deviceCount++;
             $(".collaborate .device-list ul").prepend("<li>Device "+deviceCount+"</li>");
 //                .animate({
 //                width: newWidth+"px",
