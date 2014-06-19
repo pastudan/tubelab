@@ -1,83 +1,337 @@
 <?php
-    $version = "0.1";
+    $version = "0.0.0.1";
     require_once 'Mobile-Detect/Mobile_Detect.php';
     $detect = new Mobile_Detect;
-    if ($detect->isMobile()){
+    if ($detect->isMobile() || isset($_GET['m'])){
         ?>
         <!doctype html>
-        <html>
+        <html ng-app="sortableApp" ng-controller="ResultsCtrl">
         <head>
             <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport' />
             <meta name="viewport" content="width=device-width" />
-            <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+            <link rel="stylesheet" type="text/css" media="all" href="/reset-clearfix.css">
+            <link rel="stylesheet" type="text/css" media="all" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
+            <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
             <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+            <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
             <script>
-                plid = document.URL.split('/')[3];
-                pin = document.URL.split('/')[4];
-
-                version = "<?php echo $version; ?>";
-                var socket = io.connect('http://tubelab.net:8888');
-
 
                 function getCookie(name) {
                     var parts = document.cookie.split(name + "=");
                     if (parts.length == 2) return parts.pop().split(";").shift();
                 }
 
-                socket.on('connect', function () {
-                    socket.emit('authenticate', {
-                        plid: plid,
-                        pin: pin,
-                        //cookie: getCookie('tubelab'),
-                        version: "<?php echo $version; ?>"
-                    });
-                });
-
-                socket.on('control', function (data) {
-                    console.log(data);
-                });
+//                $(document).ready(function(){
+//
+//                    $(".control").click(function(){
+//                        var action = $(this).data("action");
+//                        socket.emit("control", {
+//                            controlAction: action
+//                        });
+//                    });
+//                });
 
                 $(document).ready(function(){
 
-                    $(".control").click(function(){
-                        var action = $(this).data("action");
-                        socket.emit("control", {
-                            controlAction: action
-                        });
+                    $(".menu-bars").click(function(){
+                        $(".main-panel").toggleClass("menu-revealed");
                     });
                 });
+
+
+
+                var app = angular.module('sortableApp', []);
+
+                app.factory('socket', function ($rootScope) {
+                    var socket = io.connect('//tubelab.net:8888');
+                    return {
+                        on: function (eventName, callback) {
+                            socket.on(eventName, function () {
+                                var args = arguments;
+                                $rootScope.$apply(function () {
+                                    callback.apply(socket, args);
+                                });
+                            });
+                        },
+                        emit: function (eventName, data, callback) {
+                            socket.emit(eventName, data, function () {
+                                var args = arguments;
+                                $rootScope.$apply(function () {
+                                    if (callback) {
+                                        callback.apply(socket, args);
+                                    }
+                                });
+                            })
+                        }
+                    };
+                });
+
+                app.controller('ResultsCtrl', function ($scope, socket) {
+
+                    $scope.clients = []
+
+                    socket.on('connect', function () {
+                        socket.emit('client:authenticate', {
+                            plid: document.URL.split('/')[3],
+                            pin: document.URL.split('/')[4],
+                            cookie: getCookie('tubelab'),
+                            version: "<?php echo $version; ?>"
+                        });
+                    });
+
+                    socket.on('playlist:add', function (data) {
+
+                        var subtext;
+                        if (data.model){
+                            subtext = data.model
+                        } else {
+                            subtext = data.browser.name
+                        }
+
+                        var icon;
+
+                        console.log(data.os.name)
+                        switch (data.os.name) {
+                            case "iOS":
+                                icon = "apple"
+                                break;
+                            case "Android":
+                                icon = "android"
+                                break;
+                            case "Windows Phone":
+                                icon = "windows"
+                                break;
+                            default:
+                                icon = "desktop"
+                                break;
+                        }
+
+                        data.icon = icon;
+                        data.subtext = subtext;
+
+                        $scope.clients.push(data);
+                        console.log($scope.clients)
+
+                        $('audio')[0].play();
+
+                    });
+
+                    socket.on('client:add', function (data) {
+
+                        var subtext;
+                        if (data.model){
+                            subtext = data.model
+                        } else {
+                            subtext = data.browser.name
+                        }
+
+                        var icon;
+
+                        console.log(data.os.name)
+                        switch (data.os.name) {
+                            case "iOS":
+                                icon = "apple"
+                                break;
+                            case "Android":
+                                icon = "android"
+                                break;
+                            case "Windows Phone":
+                                icon = "windows"
+                                break;
+                            default:
+                                icon = "desktop"
+                                break;
+                        }
+
+                        data.icon = icon;
+                        data.subtext = subtext;
+
+                        $scope.clients.push(data);
+                        console.log($scope.clients)
+
+                        $('audio')[0].play();
+
+                    });
+
+                    $scope.playlist = [
+                        {
+                            title:'PL learn angular',
+                            ext_id:'bFClhxM7LY4',
+                            subtitle: 'panda video!'
+                        },
+                        {
+                            title:'PL tim mcgraw',
+                            ext_id:'bFClhxM7LY4'
+                        },
+                        {
+                            title:'PL stuff',
+                            ext_id:'bFClhxM7LY4'
+                        },
+                        {
+                            title:'PL blah',
+                            ext_id:'bFClhxM7LY4'
+                        }
+                    ];
+
+
+                    $scope.$watch('playlist', function(newValue, oldValue) {
+                        //skip this logic if the change was caused by another client.
+                        if ($scope.externalChange) {
+                            $scope.externalChange = false;
+                            return;
+                        }
+
+                        socket.emit('playlist:sync', {
+                            playlist: $scope.playlist
+                        });
+//                for(i=0; i<newValue.length; i++){
+//                    //TODO: diff the old playlist with the new, find what changed, and only send that.
+//                    // ALSO hash the playlist, compare with hash from server, and figure out if we need to re-sync.
+//                }
+                    }, true);
+
+
+                    socket.on('playlist:sync', function(data){
+                        $scope.externalChange = true;
+                        $scope.playlist = data;
+                    });
+
+
+                    $scope.openVideo = function(result) {
+                        player.loadVideoById(result.ext_id, 0, "hd720");
+                    };
+
+                });
+
+
+
+
+
+
             </script>
         </head>
         <body>
-            <div class="control" data-action="prev">
-                PREV
-            </div>
-            <div class="control" data-action="play-pause">
-                Play / Pause
-            </div>
-            <div class="control" data-action="next">
-                NEXT
-            </div>
-            <style>
-                html{
+            <div class="main-panel">
 
-                    height: 100%;
-                }
-                body{
-                    padding: 5px;
+                <header class="cf">
+                    <div class="menu-bars control-item fl">
+                        <i class="fa fa-fw fa-bars"></i>
+                    </div>
+                    <div class="currently-playing fl">
+                        Southern <div style="font-size: .5em">Tim McGraw</div>
+                    </div>
+                    <div class="control-item fr" data-action="prev">
+                        <i class="fa fa-fw fa-search"></i>
+                    </div>
+                    <div class="control-item fr" data-action="next">
+                        <i class="fa fa-fw fa-step-forward"></i>
+                    </div>
+                    <div class="control-item fr" data-action="play-pause">
+                        <i class="fa fa-fw fa-pause"></i>
+                    </div>
+
+                </header>
+
+                <section>
+                    <ul>
+                        <li ng-repeat="result in playlist" class="vid_item_link">
+                            <div class='vid_item cf'>
+                                <div class='thumb' style="background-image: url(//img.youtube.com/vi/{{result.ext_id}}/default.jpg)"></div>
+                                <div class='vid_item_title'>{{result.title}}</div>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+            </div>
+
+            <style>
+
+                /*TUBELAB STYLES*/
+
+                html,body{
+                    padding: 0;
                     margin: 0;
                     width: 100%;
                     height: 100%;
+                    overflow: hidden;
                 }
-                .control{
-                    border: 10px solid white;
-                    padding: 3%;
-                    float: left;
-                    background: green;
+                body{
+                    background-color: #1C1A18;
+                    font-family: "Lucida Grande", Tahoma, sans-serif;
+                }
+                .main-panel{
+                    height: 100%;
+                    transition: all .3s;
+                    -webkit-transition: all .3s;
+                    -moz-transition: all .3s
+                }
+                .main-panel.menu-revealed{
+                    margin: 0 -65% 0 65%;
+                }
+                header{
+                    background: #7E7975;
+                    border-bottom: 10px solid #8B0000;
                     color: white;
                     font-weight: bold;
-                    font-size: 50px;
+                    font-size: 1.5rem;
+                }
+                header .menu-bars{
+                    float: left;
+                }
+                header .currently-playing{
+                    width: 28%;
+                    margin-top: 1.5%;
+                    overflow-x: hidden;
+                }
+                header .control-item{
+                    padding: 3% 4%;
+                }
+                header .control-item:active{
+                    background: #8B0000;
+                }
+                section{
+                    /*TODO: fix this*/
+                    height: 92%;
+                    overflow-y: scroll;
+                }
+                section ul{
+                    height: 100%;
+                    list-style: none;
+                    color: white;
+                }
+                section li{
+                    height: 12%;
+                    clear: both;
+                }
+                section .vid_item{
+                    height: 100%;
+                }
+                section .thumb {
+                    float: left;
+                    height: 100%;
+                    width: 25%;
+                    margin: 1%;
+                    border-radius: 5px;
+                    background-position: center center;
+                }
 
+                section .vid_item_title {
+                    padding: 7% 0 0 3%;
+                    float: left;
+                    font-size: 24px;
+                    width: 70%;
+                    overflow: hidden;
+                }
+
+
+
+
+                .fl{
+                    float: left;
+                }
+                .fr{
+                    float: right;
                 }
             </style>
         </body>
@@ -129,20 +383,39 @@
 <head>
 	<title>TubeLab</title>
 	<link rel="shortcut icon" href="/images/favicon.png" />
+	<link rel="stylesheet" type="text/css" media="all" href="/reset-clearfix.css">
 	<link rel="stylesheet" type="text/css" media="all" href="/global.css">
 	<link rel="stylesheet" type="text/css" media="all" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>
+
+<!--IF PROD-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>-->
+<!--    <script src="//cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.10/angular.min.js"></script>-->
+<!--    <script src="/scripts/angular-ui-sortable.js"></script>-->
+    <!--  ^  TODO: put in cdnjs-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js"></script>-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/screenfull.js/1.0.4/screenfull.min.js"></script>-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.14/jquery.jscrollpane.min.js"></script>-->
+<!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>-->
+<!--    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>-->
+<!--    <script src="/scripts/typewatch.js"></script>-->
+<!--    <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>-->
+<!--/IF PROD-->
+
+<!--IF DEV-->
+    <script src="/scripts/cdn/jquery.min.js"></script>
+    <script src="/scripts/cdn/jquery-ui.min.js"></script>
+    <script src="/scripts/cdn/angular.min.js"></script>
     <script src="/scripts/angular-ui-sortable.js"></script>
-<!--  ^  TODO: put in cdnjs-->
-	<script src="//cdnjs.cloudflare.com/ajax/libs/swfobject/2.2/swfobject.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/screenfull.js/1.0.4/screenfull.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.14/jquery.jscrollpane.min.js"></script>
-	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+    <!--  ^  TODO: put in cdnjs-->
+    <script src="/scripts/cdn/swfobject.min.js"></script>
+    <script src="/scripts/cdn/screenfull.min.js"></script>
+    <script src="/scripts/cdn/jquery.jscrollpane.min.js"></script>
+    <script src="/scripts/cdn/jquery.qrcode.min.js"></script>
+    <script src="/scripts/cdn/socket.io.min.js"></script>
     <script src="/scripts/typewatch.js"></script>
     <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>
+<!--/IF DEV-->
 
     <script>
 		var plid;
@@ -160,62 +433,70 @@
 		var $sortable_searchlist;
 		var starttime;
 		var curplaying;
-        var deviceCount = 0;
 
-        var socket = io.connect('http://tubelab.net:8888');
-        socket.on('connect', function () {
-            socket.emit('authenticate', {
-                plid: document.URL.split('/')[3],
-                pin: document.URL.split('/')[4],
-                cookie: getCookie('tubelab'),
-                version: "<?php echo $version; ?>"
-            });
+
+
+        //todo: take this out!
+        $(document).keypress(function(e){
+
+            switch (e.which) {
+                case 113:
+                    $(".collaborate").toggle();
+                    break;
+            }
         });
-        socket.on('client-announce', function (data) {
-            $(".collaborate").addClass("active-devices");
-            devicCount++;
-            $(".collaborate .device-list ul").prepend("<li>Device "+deviceCount+"</li>");
-//                .animate({
-//                width: newWidth+"px",
-//                left: newLeft+"px"
-//            }, function(){
-//                $(".device-list").fadeIn();
-//                $(this).css({
-//                    left: "calc(50% - "+newWidth+"px/2)"
-//                });
+
+
+
+
+
+
+
+
+
+
+
+
+//        THIS
+
+
+
+
+
+//        var socket = io.connect('http://tubelab.net:8888');
+//        socket.on('connect', function () {
+//            socket.emit('authenticate', {
+//                plid: document.URL.split('/')[3],
+//                pin: document.URL.split('/')[4],
+//                cookie: getCookie('tubelab'),
+//                version: "<?php echo $version; ?>"
 //            });
-//            setTimeout(function(){
-//                $(".device-list").show().animate({
-//                    width: "280px"
-//                });
-//            }, 10);
-            $('audio')[0].play();
-        });
-        socket.on('control', function (data) {
-            //alert(data.controlAction);
-            console.log(data);
+//        });
+//        socket.on('control', function (data) {
+//            //alert(data.controlAction);
+//            console.log(data);
 //            $(".control[data-action=prev]").animate({paddingTop: "0"}, 200, function(){
 //                $(this).css("padding-top", "3%")
 //            });
-            switch (data.controlAction){
-                case "next":
-                    openVideo(curplaying.list_type, curplaying.id+1);
-                    break;
-                case "prev":
-                    openVideo(curplaying.list_type, curplaying.id-1);
-                    break;
-                case "play-pause":
-                    if (player.getPlayerState() == 1){
-                        player.pauseVideo();
-                    } else if(player.getPlayerState() == 2) {
-                        player.playVideo();
-                    }
-                    break;
-                default:
-                    console.log("received command not understood");
-            }
-
-        });
+//            switch (data.controlAction){
+//                case "next":
+//                    openVideo(curplaying.list_type, curplaying.id+1);
+//                    break;
+//                case "prev":
+//                    openVideo(curplaying.list_type, curplaying.id-1);
+//                    break;
+//                case "play-pause":
+//                    if (player.getPlayerState() == 1){
+//                        player.pauseVideo();
+//                    } else if(player.getPlayerState() == 2) {
+//                        player.playVideo();
+//                    }
+//                    break;
+//                default:
+//                    console.log("received command not understood");
+//            }
+//
+//        });
 
 		$(document).ready(function (){
 
@@ -249,7 +530,7 @@
 
 			var params = { allowScriptAccess: "always" };
 			var atts = { id: "player" };
-			swfobject.embedSWF("http://www.youtube.com/apiplayer?enablejsapi=1&version=3", "ytapiplayer", "4", "4", "8", null, null, params, atts);
+			swfobject.embedSWF("//www.youtube.com/apiplayer?enablejsapi=1&version=3", "ytapiplayer", "4", "4", "8", null, null, params, atts);
 
 			$curtime = $("#curtime");
 			$totaltime = $("#totaltime");
@@ -264,30 +545,30 @@
 			plid = document.URL.split('/')[3];
 //			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
 //			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
-			if (plid != ''){
-				//console.log('plid found... ');
-				$("#url").html("tubelab.net/"+plid);
-				$.ajax({
-					url: "ajax.php",
-					type: 'POST',
-					data: {method: 'get', plid: plid},
-					success: function(data){
-						playlist = $.parseJSON(data);
-//						for(i=0;i<playlist.length;i++){
-//							title = playlist[i].title.split("-");
-//							artist = title.shift();
-//							track = title.join('-');
-//							$sortable_playlist.append("<li id='video"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+playlist[i].ext_id+"' onclick=\"openVideo('playlist',"+i+"); return false;\"><div class='vid_item'><div class='thumb'><img src='http://img.youtube.com/vi/"+playlist[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+playlist[i].title+"</div></div></a></li>");
-//						}
-						//$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
-						//$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
-//						openVideo('playlist', 0);
-						resize();
-					}
-				});
-			} else {
-				//console.log('no plid found...');
-			}
+//			if (plid != ''){
+//				//console.log('plid found... ');
+//				$("#url").html("tubelab.net/"+plid);
+//				$.ajax({
+//					url: "ajax.php",
+//					type: 'POST',
+//					data: {method: 'get', plid: plid},
+//					success: function(data){
+//						playlist = $.parseJSON(data);
+////						for(i=0;i<playlist.length;i++){
+////							title = playlist[i].title.split("-");
+////							artist = title.shift();
+////							track = title.join('-');
+////							$sortable_playlist.append("<li id='video"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+playlist[i].ext_id+"' onclick=\"openVideo('playlist',"+i+"); return false;\"><div class='vid_item'><div class='thumb'><img src='http://img.youtube.com/vi/"+playlist[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+playlist[i].title+"</div></div></a></li>");
+////						}
+//						//$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
+//						//$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
+////						openVideo('playlist', 0);
+//						resize();
+//					}
+//				});
+//			} else {
+//				//console.log('no plid found...');
+//			}
 			$("#search").typeWatch({
                 //TODO this doesn't need a plugin.. come on
 				callback:search,
@@ -296,7 +577,7 @@
 			$(window).resize(resize);
 
 
-<!--            TODO: replace with slimscroll http://rocha.la/jQuery-slimScroll -->
+//<!--            TODO: replace with slimscroll http://rocha.la/jQuery-slimScroll -->
 
 //
 //			$("#search_container,#playlist_container").hover(function (){
@@ -569,29 +850,146 @@
         //Angular, yay!
 
 
-        var myapp = angular.module('sortableApp', ['ui.sortable']);
+        var app = angular.module('sortableApp', ['ui.sortable']);
 
-        myapp.controller('ResultsCtrl', function ($scope) {
+        app.factory('socket', function ($rootScope) {
+            var socket = io.connect('//tubelab.net:8888');
+            return {
+                on: function (eventName, callback) {
+                    socket.on(eventName, function () {
+                        var args = arguments;
+                        $rootScope.$apply(function () {
+                            callback.apply(socket, args);
+                        });
+                    });
+                },
+                emit: function (eventName, data, callback) {
+                    socket.emit(eventName, data, function () {
+                        var args = arguments;
+                        $rootScope.$apply(function () {
+                            if (callback) {
+                                callback.apply(socket, args);
+                            }
+                        });
+                    })
+                }
+            };
+        });
 
-            var tmpList = [];
+        app.controller('ResultsCtrl', function ($scope, socket) {
 
-            $scope.results = [
-                {
-                    title:'learn angular',
-                    ext_id:'bFClhxM7LY4',
-                    subtitle: 'panda video!'
+            $scope.clients = []
+
+            socket.on('connect', function () {
+                socket.emit('client:authenticate', {
+                    plid: document.URL.split('/')[3],
+                    pin: document.URL.split('/')[4],
+                    cookie: getCookie('tubelab'),
+                    version: "<?php echo $version; ?>"
+                });
+            });
+
+            socket.on('playlist:add', function (data) {
+
+                var subtext;
+                if (data.model){
+                    subtext = data.model
+                } else {
+                    subtext = data.browser.name
+                }
+
+                var icon;
+
+                console.log(data.os.name)
+                switch (data.os.name) {
+                    case "iOS":
+                        icon = "apple"
+                        break;
+                    case "Android":
+                        icon = "android"
+                        break;
+                    case "Windows Phone":
+                        icon = "windows"
+                        break;
+                    default:
+                        icon = "desktop"
+                        break;
+                }
+
+                data.icon = icon;
+                data.subtext = subtext;
+
+                $scope.clients.push(data);
+                console.log($scope.clients)
+
+                $('audio')[0].play();
+
+            });
+
+            socket.on('client:add', function (data) {
+
+                var subtext;
+                if (data.model){
+                    subtext = data.model
+                } else {
+                    subtext = data.browser.name
+                }
+
+                var icon;
+
+                console.log(data.os.name)
+                switch (data.os.name) {
+                    case "iOS":
+                        icon = "apple"
+                        break;
+                    case "Android":
+                        icon = "android"
+                        break;
+                    case "Windows Phone":
+                        icon = "windows"
+                        break;
+                    default:
+                        icon = "desktop"
+                        break;
+                }
+
+                data.icon = icon;
+                data.subtext = subtext;
+
+                $scope.clients.push(data);
+                console.log($scope.clients)
+
+                $('audio')[0].play();
+
+            });
+
+            $scope.results = [{
+                    title:'Basshunter - All I Ever Wanted',
+                    ext_id:'zf2wbRWb9xI'
                 },
                 {
-                    title:"rosana, she's the sexy mama",
+                    title:'Timestretch - Bassnectar',
+                    ext_id:'5M-jOZRe0-8'
+                },
+                {
+                    title:"rosana, she's a sexy mama",
                     ext_id:'v0aRb4rAq0I'
                 },
                 {
-                    title:'stuff',
-                    ext_id:'bFClhxM7LY4'
+                    title:"turn ",
+                    ext_id:'HMUDVMiITOU'
                 },
                 {
-                    title:'blah',
-                    ext_id:'bFClhxM7LY4'
+                    title:"turn down. ",
+                    ext_id:'HMUDVMiITOU'
+                },
+                {
+                    title:"turn down. for ",
+                    ext_id:'HMUDVMiITOU'
+                },
+                {
+                    title:"turn down. for what?",
+                    ext_id:'HMUDVMiITOU'
                 }
             ];
 
@@ -615,6 +1013,8 @@
                 }
             ];
 
+
+
             $scope.sortableOptions = {
                 revert: 100,
                 helper: "clone",
@@ -622,28 +1022,33 @@
                 connectWith: ".sortable"
             };
 
+            $scope.$watch('playlist', function(newValue, oldValue) {
+                //skip this logic if the change was caused by another client.
+                if ($scope.externalChange) {
+                    $scope.externalChange = false;
+                    return;
+                }
+
+                socket.emit('playlist:sync', {
+                    playlist: $scope.playlist
+                });
+//                for(i=0; i<newValue.length; i++){
+//                    //TODO: diff the old playlist with the new, find what changed, and only send that.
+//                    // ALSO hash the playlist, compare with hash from server, and figure out if we need to re-sync.
+//                }
+            }, true);
+
+
+            socket.on('playlist:sync', function(data){
+                $scope.externalChange = true;
+                $scope.playlist = data;
+            });
+
+
             $scope.openVideo = function(result) {
                 player.loadVideoById(result.ext_id, 0, "hd720");
-                //play video logic
-//                $scope.todos.push({text:$scope.todoText, done:false});
-//                $scope.todoText = '';
             };
 
-            $scope.remaining = function() {
-                var count = 0;
-                angular.forEach($scope.todos, function(todo) {
-                    count += todo.done ? 0 : 1;
-                });
-                return count;
-            };
-
-            $scope.archive = function() {
-                var oldTodos = $scope.todos;
-                $scope.todos = [];
-                angular.forEach(oldTodos, function(todo) {
-                    if (!todo.done) $scope.todos.push(todo);
-                });
-            };
         });
 
 
@@ -661,9 +1066,9 @@
 <!--    <a href="https://github.com/pastudan/tubelab"><img class="github-banner" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>-->
 
 
-    <div class="collaborate">
+    <div class="collaborate" ng-class="{'active-devices':clients.length>0}">
         <h1>Collaborate</h1>
-        <p>Let friends help create a killer playlist. Or, just <a href="#">share.</a></p>
+        <p>Let your friends help create an awesome playlist. Or just <a href="#">share.</a></p>
 
         <div class="share-container">
             <div class="url">tubelab.net/ei3k/2402</div>
@@ -671,15 +1076,31 @@
             <div class="or">or</div>
         </div>
 
-        <div class="device-list">
+        <div class="device-container">
             <h3>Devices</h3>
-            <ul></ul>
+            <ul class="device-list">
+                <li class='cf' ng-repeat="client in clients">
+                    <i class='fa fa-fw fa-{{client.icon}} fl' style='font-size: 38px; color: #1D1D1D; margin-right: 15px'></i>
+                    <div class='fl' >
+                        <div style='font-size: 20px; color: #1D1D1D; font-weight: bold;'>
+                            {{client.name}}
+                        </div>
+                        <div style='font-size: 12px; color: #ebeae8'>
+                            {{client.subtext}}
+                        </div>
+                    </div>
+                    <div class="delete">
+                        DROPDOWN: {delete, view only}
+                        <i class="fa fa-times-circle"></i>
+                    </div>
+                </li>
+            </ul>
             <div class="action">Done</div>
         </div>
 
         <audio>
             <source src="sounds/smw_1-up.wav" type="audio/mpeg">
-            Your browser does not support the audio element.
+            Your browser does not support HTML5 audio.
         </audio>
     </div>
 
@@ -728,7 +1149,7 @@
                 <li ng-repeat="result in results" class="vid_item_link" ng-click="openVideo(result)">
                     <div class='vid_item cf'>
                         <div class='thumb'>
-                            <img src='http://img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
+                            <img src='//img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
                         </div>
                         <div class='vid_item_title'>{{result.title}}</div>
                         <div ng-show="result.subtitle" class='sf gray subtitle'>{{result.subtitle}}</div>
@@ -746,7 +1167,7 @@
                         <img src="images/globe_24.png" />
                     </div>
                     <div id="url">
-                        Drag a song over...
+                        tubelab.net/2n2w
                     </div>
 				</div>
 			</div>
@@ -754,7 +1175,7 @@
                 <li ng-repeat="result in playlist" class="vid_item_link" ng-click="openVideo(result)">
                     <div class='vid_item cf'>
                         <div class='thumb'>
-                            <img src='http://img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
+                            <img src='//img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
                         </div>
                         <div class='vid_item_title'>{{result.title}}</div>
                     </div>
