@@ -1,6 +1,7 @@
+var request = require('request');
 var io = require('socket.io').listen(8888);
 var playlists = {}; //replace with Redis sooner or later..
-
+var search = {};
 var UAParser = require('ua-parser-js');
 var parser = new UAParser();
 
@@ -11,11 +12,11 @@ var phoneModels = [
 var defaultNames = [
     "Donut","Penguin","Stumpy","Whicker","Shadow","Howard","Wilshire","Darling","Disco","Jack","The Bear","Sneak","The Big L","Whisp","Wheezy","Crazy","Goat","Pirate","Saucy","Hambone","Butcher","Walla Walla","Snake","Caboose","Sleepy","Killer","Stompy","Mopey","Dopey","Weasel","Ghost","Dasher","Grumpy","Hollywood","Tooth","Noodle","King","Cupid","Prancer"
 ];
-
-setInterval(function () {
-    console.log("playlists: ", JSON.stringify( playlists, null, 2 ) );
-//   console.log("sockets: ", io.sockets);
-}, 3000);
+//
+//setInterval(function () {
+//    console.log("playlists: ", JSON.stringify( playlists, null, 2 ) );
+////   console.log("sockets: ", io.sockets);
+//}, 3000);
 
 io.sockets.on('connection', function (socket) {
 
@@ -142,9 +143,38 @@ io.sockets.on('connection', function (socket) {
         }
     });
 
-    socket.on('search', function(){
+    socket.on('search:query', function(data){
+        if (typeof search[data.query] == "undefined"){
+            var options = {
+                url: "http://gdata.youtube.com/feeds/api/videos?q="+data.query+"&alt=json&start-index=1&max-results=25&v=2",
+                json: true
+            }
+            request.get(options, function (error, response, body) {
+//                console.log(JSON.stringify( body, null, 2 ));
+//                console.log(body.feed.openSearch$totalResults.$t)
+                if (body.feed.openSearch$totalResults.$t > 0) {
+                    search[data.query] = [];
+                    for (i=0; i<body.feed.entry.length; i++){
+                        search[data.query].push({
+                            title: body.feed.entry[i].title.$t,
+                            ext_id: body.feed.entry[i].media$group.yt$videoid.$t
+                        });
+                    }
+                } else {
+                    search[data.query] = [{
+                        title: "No results found...",
+                        subtitle: "Instead, here's a baby panda",
+                        ext_id: "FzRH3iTQPrk"
+                    }];
+                }
+                console.log(search[data.query]);
+                socket.emit('search:results', search[data.query]);
+            })
+        } else {
+            console.log(search[data.query]);
+            socket.emit('search:results', search[data.query]);
+        }
 
-        socket.emit();
     });
 
 

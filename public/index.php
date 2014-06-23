@@ -398,7 +398,6 @@
 <!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jScrollPane/2.0.14/jquery.jscrollpane.min.js"></script>-->
 <!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>-->
 <!--    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>-->
-<!--    <script src="/scripts/typewatch.js"></script>-->
 <!--    <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>-->
 <!--/IF PROD-->
 
@@ -413,7 +412,6 @@
     <script src="/scripts/cdn/jquery.jscrollpane.min.js"></script>
     <script src="/scripts/cdn/jquery.qrcode.min.js"></script>
     <script src="/scripts/cdn/socket.io.min.js"></script>
-    <script src="/scripts/typewatch.js"></script>
     <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>
 <!--/IF DEV-->
 
@@ -569,22 +567,17 @@
 //			} else {
 //				//console.log('no plid found...');
 //			}
-			$("#search").typeWatch({
-                //TODO this doesn't need a plugin.. come on
-				callback:search,
-				wait:250
-			});
 			$(window).resize(resize);
 
 
 //<!--            TODO: replace with slimscroll http://rocha.la/jQuery-slimScroll -->
 
-//
-//			$("#search_container,#playlist_container").hover(function (){
-//				$(this).css('overflow', 'auto');
-//			}, function (){
-//				$(this).css('overflow', 'hidden');
-//			});
+
+			$("#search_container,#playlist_container").hover(function (){
+				$(this).css('overflow', 'auto');
+			}, function (){
+				$(this).css('overflow', 'hidden');
+			});
 
 
 			$("#playpause").click(function(){
@@ -811,37 +804,6 @@
 			//TODO using above said logic... update nextplaying variable to be from searchlist or playlist... then we can check that on the video end.
 		}
 
-		function search(){
-			search_counter += 1;
-			var temp_search_count = search_counter;
-			q = $("#search").val();
-			$.ajax({
-				url: "ajax.php",
-				type: 'POST',
-				data: {method: 'search', q:q, plid: plid, start:1},
-				success: function(data){
-					if (temp_search_count == search_counter){
-						results = $.parseJSON(data);
-						$sortable_searchlist = $("#sortable_searchlist");
-						$sortable_searchlist.empty();
-						searchlist = new Array();
-						for(i=0;i<results.length;i++){
-							//on the li id put the search number, so we don't get the playlsit confused
-							//addPlaylistItem('search'+temp_search_count, results[i].ext_id, results[i].title);
-							//title = results[i].title.split('-');
-							//artist = title.shift();
-							//track = title.join('-');
-							searchlist.push({
-								title:results[i].title,
-								ext_id:results[i].ext_id
-							});
-//							$sortable_searchlist.append("<li id='search_"+temp_search_count+"_"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+results[i].ext_id+"' onclick=\"openVideo('searchlist',"+i+"); return false;\"><div class='vid_item cf'><div class='thumb'><img src='http://img.youtube.com/vi/"+results[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+results[i].title+"</div>"+(results[i].subtitle?"<div class='sf gray subtitle'>"+results[i].subtitle+"</div>":"")+"</div></a></li>");
-						}
-					}
-				}
-			});
-		}
-
 
 
 
@@ -1038,6 +1000,16 @@
 //                }
             }, true);
 
+            $scope.$watch('query', function() {
+                socket.emit('search:query', {
+                    query: $scope.query
+                });
+            });
+
+            socket.on('search:results', function(data){
+                //TODO: !! race condition can present a problem.. make sure most recent result set is displayed
+                $scope.results = data;
+            });
 
             socket.on('playlist:sync', function(data){
                 $scope.externalChange = true;
@@ -1142,7 +1114,7 @@
 			<div id="search_controls" class="list_controls">
 				<h2 class="tab_label left-tab">Search</h2>
 				<div class="input_container left-tab">
-					<input id="search" type="text" />
+					<input id="search" type="text" ng-model="query" />
 				</div>
 			</div>
 			<ul ui-sortable="sortableOptions" ng-model="results" id='sortable_searchlist' class='sortable'>
