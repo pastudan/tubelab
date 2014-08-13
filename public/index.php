@@ -42,6 +42,32 @@
 
                 var app = angular.module('sortableApp', []);
 
+                app.directive('focusMe', function($timeout, $parse) {
+                    return {
+                        //scope: true,   // optionally create a child scope
+                        link: function(scope, element, attrs) {
+                            var model = $parse(attrs.focusMe);
+                            scope.$watch(model, function(value) {
+                                if(value === true) {
+                                    $timeout(function() {
+//                                        element[0].focus();
+
+                                        $(element[0]).focus();
+                                    });
+                                    window.setTimeout(function(){
+                                        $(element[0]).click();
+                                    },2000)
+                                }
+                            });
+                            // on blur event:
+                            element.bind('blur', function() {
+                                console.log('blur');
+                                scope.$apply(model.assign(scope, false));
+                            });
+                        }
+                    };
+                });
+
                 app.factory('socket', function ($rootScope) {
                     var socket = io.connect('//tubelab.net:8888');
                     return {
@@ -77,6 +103,17 @@
                             cookie: getCookie('tubelab'),
                             version: "<?php echo $version; ?>"
                         });
+                    });
+
+                    $scope.$watch('query', function() {
+                        socket.emit('search:query', {
+                            query: $scope.query
+                        });
+                    });
+
+                    socket.on('search:results', function(data){
+                        //TODO: !! race condition can present a problem.. make sure most recent result set is displayed
+                        $scope.results = data;
                     });
 
                     socket.on('playlist:add', function (data) {
@@ -197,8 +234,11 @@
                     });
 
 
-                    $scope.openVideo = function(result) {
-                        player.loadVideoById(result.ext_id, 0, "hd720");
+
+                    $scope.remoteOpenVideo = function(result) {
+                        socket.emit('playlist:play', {
+                            ext_id: result.ext_id
+                        });
                     };
 
                 });
@@ -217,22 +257,46 @@
                     <div class="menu-bars control-item fl">
                         <i class="fa fa-fw fa-bars"></i>
                     </div>
-                    <div class="currently-playing fl">
+                    <div ng-show="!showSearchField" class="currently-playing fl">
                         Southern <div style="font-size: .5em">Tim McGraw</div>
                     </div>
-                    <div class="control-item fr" data-action="prev">
+
+                    <div ng-show="showSearchField" class="search-container fl">
+                        <input focus-me="showSearchField" id="search" type="text" ng-model="query" />
+                        <div class="search-border"></div>
+                    </div>
+
+                    <div ng-show="!showSearchField" class="control-item fr" data-action="prev">
                         <i class="fa fa-fw fa-search"></i>
                     </div>
-                    <div class="control-item fr" data-action="next">
+
+                    <input ng-click="showSearchField = !showSearchField" type="text" class="search-keyboard-hack fr" ng-class="{'fake-hidden': showSearchField}"/>
+
+                    <div ng-show="!showSearchField" class="control-item fr" data-action="next">
                         <i class="fa fa-fw fa-step-forward"></i>
                     </div>
-                    <div class="control-item fr" data-action="play-pause">
+                    <div ng-show="!showSearchField" class="control-item fr" data-action="play-pause">
                         <i class="fa fa-fw fa-pause"></i>
                     </div>
 
                 </header>
 
-                <section>
+
+
+
+
+                <section class="results-wrapper">
+                    <ul>
+                        <li ng-repeat="result in results" class="vid_item_link">
+                            <div class='vid_item cf'>
+                                <div class='thumb' style="background-image: url(//img.youtube.com/vi/{{result.ext_id}}/default.jpg)"></div>
+                                <div class='vid_item_title' ng-click="remoteOpenVideo(result)">{{result.title}}</div>
+                            </div>
+                        </li>
+                    </ul>
+                </section>
+
+                <section class="playlist-wrapper">
                     <ul>
                         <li ng-repeat="result in playlist" class="vid_item_link">
                             <div class='vid_item cf'>
@@ -248,7 +312,6 @@
             <style>
 
                 /*TUBELAB STYLES*/
-
                 html,body{
                     padding: 0;
                     margin: 0;
@@ -275,6 +338,7 @@
                     color: white;
                     font-weight: bold;
                     font-size: 1.5rem;
+                    position: relative;
                 }
                 header .menu-bars{
                     float: left;
@@ -284,30 +348,63 @@
                     margin-top: 1.5%;
                     overflow-x: hidden;
                 }
+                header .search-keyboard-hack{
+                    position: absolute;
+                    top: 0;
+                    right: 0;
+                    width: 15%;
+                    height: 100%;
+                    background-color: transparent;
+                    border: none;
+                }
+
+                header .search-keyboard-hack.fake-hidden{
+                    width: 0;
+                }
+
+                header .search-container{
+                    width: 80%;
+                }
+                header .search-container input{
+                    border: none;
+                    background-color: transparent;
+                    outline: none;
+                    color: white;
+                    padding: 7px;
+                    width: 100%;
+                    margin-bottom: -5px;
+                    font-size: 1.4rem;
+                }
+                header .search-container .search-border{
+                    border: 1px solid #FFFFFF;
+                    border-style: none solid solid;
+                    height: 5px;
+                }
                 header .control-item{
-                    padding: 3% 4%;
+                    padding: 3%;
+                    width: 15%;
                 }
                 header .control-item:active{
                     background: #8B0000;
                 }
-                section{
+                .playlist-wrapper{
                     /*TODO: fix this*/
                     height: 92%;
                     overflow-y: scroll;
                 }
-                section ul{
+                .playlist-wrapper ul{
                     height: 100%;
                     list-style: none;
                     color: white;
                 }
-                section li{
+                .playlist-wrapper li{
                     height: 12%;
                     clear: both;
                 }
-                section .vid_item{
+                .playlist-wrapper .vid_item{
                     height: 100%;
                 }
-                section .thumb {
+                .playlist-wrapper .thumb {
                     float: left;
                     height: 100%;
                     width: 25%;
@@ -316,7 +413,41 @@
                     background-position: center center;
                 }
 
-                section .vid_item_title {
+                .playlist-wrapper .vid_item_title {
+                    padding: 7% 0 0 3%;
+                    float: left;
+                    font-size: 24px;
+                    width: 70%;
+                    overflow: hidden;
+                }
+                
+                .results-wrapper{
+                    /*TODO: fix this*/
+                    height: 92%;
+                    overflow-y: scroll;
+                }
+                .results-wrapper ul{
+                    height: 100%;
+                    list-style: none;
+                    color: white;
+                }
+                .results-wrapper li{
+                    height: 12%;
+                    clear: both;
+                }
+                .results-wrapper .vid_item{
+                    height: 100%;
+                }
+                .results-wrapper .thumb {
+                    float: left;
+                    height: 100%;
+                    width: 25%;
+                    margin: 1%;
+                    border-radius: 5px;
+                    background-position: center center;
+                }
+
+                .results-wrapper .vid_item_title {
                     padding: 7% 0 0 3%;
                     float: left;
                     font-size: 24px;
@@ -509,8 +640,9 @@
                 mSize: 0.11,
                 mPosX: 0.5,
                 mPosY: 0.5,
-//                label: 'Be the DJ.',
-                label: 'Share. Mix.',
+                label: 'Be the DJ.',
+//                label: 'Share. Mix.',
+//                label: 'Take Control.',
                 fontname: 'Verdana',
                 fontcolor: '#AE0000'
             }).children("canvas").height(250);
@@ -1016,6 +1148,10 @@
                 $scope.playlist = data;
             });
 
+            socket.on('playlist:play', function(data){
+                player.loadVideoById(data.ext_id, 0, "hd720");
+            });
+
 
             $scope.openVideo = function(result) {
                 player.loadVideoById(result.ext_id, 0, "hd720");
@@ -1057,7 +1193,7 @@
                         <div style='font-size: 20px; color: #1D1D1D; font-weight: bold;'>
                             {{client.name}}
                         </div>
-                        <div style='font-size: 12px; color: #ebeae8'>
+                        <div style='font-size: 12px; color: #ebeae8; max-width:170px'>
                             {{client.subtext}}
                         </div>
                     </div>
