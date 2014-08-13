@@ -1,0 +1,154 @@
+
+/*TUBELAB STYLES*/
+html,body{
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+body{
+    background-color: #1C1A18;
+    font-family: "Lucida Grande", Tahoma, sans-serif;
+}
+.main-panel{
+    height: 100%;
+    transition: all .3s;
+    -webkit-transition: all .3s;
+    -moz-transition: all .3s
+}
+.main-panel.menu-revealed{
+    margin: 0 -65% 0 65%;
+}
+header{
+    background: #7E7975;
+    border-bottom: 10px solid #8B0000;
+    color: white;
+    font-weight: bold;
+    font-size: 1.5rem;
+    position: relative;
+}
+header .menu-bars{
+    float: left;
+}
+header .currently-playing{
+    width: 28%;
+    margin-top: 1.5%;
+    overflow-x: hidden;
+}
+header .search-keyboard-hack{
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 15%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+}
+
+header .search-keyboard-hack.fake-hidden{
+    width: 0;
+}
+
+header .search-container{
+    width: 80%;
+}
+header .search-container input{
+    border: none;
+    background-color: transparent;
+    outline: none;
+    color: white;
+    padding: 7px;
+    width: 100%;
+    margin-bottom: -5px;
+    font-size: 1.4rem;
+}
+header .search-container .search-border{
+    border: 1px solid #FFFFFF;
+    border-style: none solid solid;
+    height: 5px;
+}
+header .control-item{
+    padding: 3%;
+    width: 15%;
+}
+header .control-item:active{
+    background: #8B0000;
+}
+.playlist-wrapper{
+    /*TODO: fix this*/
+    height: 92%;
+    overflow-y: scroll;
+}
+.playlist-wrapper ul{
+    height: 100%;
+    list-style: none;
+    color: white;
+}
+.playlist-wrapper li{
+    height: 12%;
+    clear: both;
+}
+.playlist-wrapper .vid_item{
+    height: 100%;
+}
+.playlist-wrapper .thumb {
+    float: left;
+    height: 100%;
+    width: 25%;
+    margin: 1%;
+    border-radius: 5px;
+    background-position: center center;
+}
+
+.playlist-wrapper .vid_item_title {
+    padding: 7% 0 0 3%;
+    float: left;
+    font-size: 24px;
+    width: 70%;
+    overflow: hidden;
+}
+
+.results-wrapper{
+    /*TODO: fix this*/
+    height: 92%;
+    overflow-y: scroll;
+}
+.results-wrapper ul{
+    height: 100%;
+    list-style: none;
+    color: white;
+}
+.results-wrapper li{
+    height: 12%;
+    clear: both;
+}
+.results-wrapper .vid_item{
+    height: 100%;
+}
+.results-wrapper .thumb {
+    float: left;
+    height: 100%;
+    width: 25%;
+    margin: 1%;
+    border-radius: 5px;
+    background-position: center center;
+}
+
+.results-wrapper .vid_item_title {
+    padding: 7% 0 0 3%;
+    float: left;
+    font-size: 24px;
+    width: 70%;
+    overflow: hidden;
+}
+
+
+
+
+.fl{
+    float: left;
+}
+.fr{
+    float: right;
+}

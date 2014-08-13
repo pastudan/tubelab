@@ -87,16 +87,16 @@ h2 {
 }
 
 #playpause {
-    background: url("images/play_icon.png") center top no-repeat;
+    background: url("../images/play_icon.png") center top no-repeat;
     left: 0;
 }
 #playpause.playing {
-    background: url("images/pause_icon.png") center top no-repeat;
+    background: url("../images/pause_icon.png") center top no-repeat;
     background-size: 40px 80px;
 }
 
 #fullscreen {
-    background: url("images/fullscreen.png") center top no-repeat;
+    background: url("../images/fullscreen.png") center top no-repeat;
     left: 730px;
 }
 
@@ -335,7 +335,7 @@ h2 {
     cursor: text;
     border: 1px solid #5897fb;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
-    background: #efefef url("images/qr.png") no-repeat 0 20px;
+    background: #efefef url("../images/qr.png") no-repeat 0 20px;
 }
 
 #url, #search{

@@ -1,0 +1,596 @@
+var plid;
+var playlist = new Array();
+var searchlist;
+var playlist_update = new Array();
+var search_counter = 0;
+var was_fullscreen = 0;
+var player;
+var $curtime;
+var $totaltime;
+var $timetooltip;
+var $seektooltip;
+var $sortable_playlist;
+var $sortable_searchlist;
+var starttime;
+var curplaying;
+
+
+
+//todo: take this out!
+$(document).keypress(function(e){
+
+    switch (e.which) {
+        case 113:
+            $(".collaborate").toggle();
+            break;
+    }
+});
+
+//        THIS
+
+//        var socket = io.connect('http://tubelab.net:8888');
+//        socket.on('connect', function () {
+//            socket.emit('authenticate', {
+//                plid: document.URL.split('/')[3],
+//                pin: document.URL.split('/')[4],
+//                cookie: getCookie('tubelab'),
+//                version: "<?php echo $version; ?>"
+//            });
+//        });
+//        socket.on('control', function (data) {
+//            //alert(data.controlAction);
+//            console.log(data);
+//            $(".control[data-action=prev]").animate({paddingTop: "0"}, 200, function(){
+//                $(this).css("padding-top", "3%")
+//            });
+//            switch (data.controlAction){
+//                case "next":
+//                    openVideo(curplaying.list_type, curplaying.id+1);
+//                    break;
+//                case "prev":
+//                    openVideo(curplaying.list_type, curplaying.id-1);
+//                    break;
+//                case "play-pause":
+//                    if (player.getPlayerState() == 1){
+//                        player.pauseVideo();
+//                    } else if(player.getPlayerState() == 2) {
+//                        player.playVideo();
+//                    }
+//                    break;
+//                default:
+//                    console.log("received command not understood");
+//            }
+//
+//        });
+
+$(document).ready(function (){
+
+    $(".collaborate .qr").qrcode({
+        text : "tubelab.net/abcd/1234",
+        minVersion: 4,
+        ecLevel: 'H',
+        fill: "#262626",
+        size: 500,
+        radius: 0.5,
+        mode: 2, //label box
+        mSize: 0.11,
+        mPosX: 0.5,
+        mPosY: 0.5,
+        label: 'Be the DJ.',
+//                label: 'Share. Mix.',
+//                label: 'Take Control.',
+        fontname: 'Verdana',
+        fontcolor: '#AE0000'
+    }).children("canvas").height(250);
+
+
+
+    $('#fullscreen').click(function () {
+        if (screenfull.enabled) {
+            screenfull.request();
+        }
+        $("#search_container").animate({"left":"0", "width":"0"});
+        $("#playlist_container").animate({"right":"0", "width":"0"});
+        resize();
+    });
+
+    var params = { allowScriptAccess: "always" };
+    var atts = { id: "player" };
+    swfobject.embedSWF("//www.youtube.com/apiplayer?enablejsapi=1&version=3", "ytapiplayer", "4", "4", "8", null, null, params, atts);
+
+    $curtime = $("#curtime");
+    $totaltime = $("#totaltime");
+    $progress = $("#progress");
+    $loaded = $("#loaded");
+    $timetooltip = $("#timetooltip");
+    $seektooltip = $("#seektooltip");
+    $sortable_playlist = $("#sortable_playlist");
+    $sortable_searchlist = $('#sortable_searchlist');
+
+    resize();
+    plid = document.URL.split('/')[3];
+//			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
+//			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
+//			if (plid != ''){
+//				//console.log('plid found... ');
+//				$("#url").html("tubelab.net/"+plid);
+//				$.ajax({
+//					url: "ajax.php",
+//					type: 'POST',
+//					data: {method: 'get', plid: plid},
+//					success: function(data){
+//						playlist = $.parseJSON(data);
+////						for(i=0;i<playlist.length;i++){
+////							title = playlist[i].title.split("-");
+////							artist = title.shift();
+////							track = title.join('-');
+////							$sortable_playlist.append("<li id='video"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+playlist[i].ext_id+"' onclick=\"openVideo('playlist',"+i+"); return false;\"><div class='vid_item'><div class='thumb'><img src='http://img.youtube.com/vi/"+playlist[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+playlist[i].title+"</div></div></a></li>");
+////						}
+//						//$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
+//						//$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
+////						openVideo('playlist', 0);
+//						resize();
+//					}
+//				});
+//			} else {
+//				//console.log('no plid found...');
+//			}
+    $(window).resize(resize);
+
+
+//<!--            TODO: replace with slimscroll http://rocha.la/jQuery-slimScroll -->
+
+
+    $("#search_container,#playlist_container").hover(function (){
+        $(this).css('overflow', 'auto');
+    }, function (){
+        $(this).css('overflow', 'hidden');
+    });
+
+
+    $("#playpause").click(function(){
+        if (player.getPlayerState() == 1){
+            player.pauseVideo();
+        } else if(player.getPlayerState() == 2) {
+            player.playVideo();
+        }
+    });
+
+    $("#seek").mousemove(function (e){
+        timecode = formatTime((e.pageX - $(this).offset().left) / 648 * player.getDuration());
+        $timetooltip.show().html(timecode).css({
+            top: (e.pageY + 11) + "px",
+            left: (e.pageX + 15) + "px"
+        });
+        $seektooltip.show().css({
+            left: (e.pageX - $(this).offset().left - 1) + "px"
+        });
+    }).mouseleave(function(){
+        $timetooltip.hide();
+        $seektooltip.hide();
+    }).click(function (e){
+        starttime = Math.round((e.pageX - $(this).offset().left) / 648 * player.getDuration());
+        player.seekTo(starttime, true);
+        $progress.width(3);
+    });
+
+});
+
+function getCookie(name) {
+    var parts = document.cookie.split(name + "=");
+    if (parts.length == 2) return parts.pop().split(";").shift();
+}
+
+function formatTime(seconds){
+    seconds = Math.round(seconds);
+    minutes = Math.floor(seconds/60);
+    seconds = Math.round(seconds%60);
+    seconds = (seconds<10) ? "0" + seconds : seconds;
+    return minutes + ":" + seconds;
+}
+
+function onYouTubePlayerReady(playerId) {
+    player = document.getElementById('player');
+    player.addEventListener("onStateChange", "playerStateChange");
+    setInterval(updateInfo, 150);
+    resize();
+}
+
+function playerStateChange(state){
+    if (state == 0){
+        //video is ended.. go to next in playlist..
+        //openVideo("tKi9Z-f6qX4");
+        //console.log('opening next video....');
+        openVideo(curplaying.list_type, curplaying.id+1);
+    }
+}
+
+function updateInfo(){
+    curtime = player.getCurrentTime();
+    duration = player.getDuration();
+    loaded = player.getVideoBytesLoaded();
+    totalsize = player.getVideoBytesTotal();
+    startbytes = player.getVideoStartBytes();
+    $curtime.html(formatTime(curtime));
+    $totaltime.html(formatTime(duration));
+    $progress.width((curtime-starttime)/duration*648);
+    $progress.css("left", (starttime/duration*648));
+    $loaded.width(loaded/totalsize*648);
+    $loaded.css("left", (startbytes/totalsize*648));
+}
+
+function resize(){
+
+    browser = $.browser;
+    /* var is_fullscreen = ( //browser check
+     window.fullScreen || //firefox -- that was easy :D
+     ((browser.webkit || (browser.msie && browser.version > 8)) && screen.width == window.outerWidth && screen.height == window.outerHeight) || //chrome & ie9+ (think this works for ie9...not sure yet)
+     (browser.msie && browser.version <= 8 && (screen.height-document.documentElement.clientHeight) < 30)); //iesuck */
+    var is_fullscreen = screenfull.isFullscreen;
+
+    /*			if (is_fullscreen){
+     $('#player').css({
+     'position' : 'absolute',
+     'left' : '0px',
+     'top' : '0px',
+     'margin' : '0',
+     'width' : $(window).width(),
+     'height' : $(window).height()
+     });
+     //$('#player').width();
+     //$('#player').height();
+     } else {
+     $('#info').html('Normal Mode.');
+     $('#player').css({
+     'left' : 'auto',
+     'top' : 'auto',
+     'margin' : 'auto',
+     'width' : '623',
+     'height' : '384'
+     });
+     }
+     */
+
+    var viewportWidth  = $(window).width()
+    , viewportHeight = $(window).height()
+
+    //use 3/5ths screen space to display video and controls. maybe let users set this in the future
+    var max_player_height = ((viewportHeight * 3 / 5) - 92);
+    var player_height = (max_player_height > 438) ?  438 : max_player_height;
+    var player_width = player_height * 16 / 9;
+
+    var offset;
+
+    if (viewportHeight < 280){
+        //no video
+        $("#player_spotlight").css({'margin-left':'10000px', 'height':'1px'});
+        offset = 52;
+    } else if (viewportHeight < 600){
+        //slim video
+        $("#player_spotlight").css('padding','5px').css({'margin':'0 auto', 'height':'auto'});
+        $("#player_container_border").css({'padding':'0','border':'0'});
+        offset = 53 + player_height;
+    } else if (viewportHeight > 600 && !is_fullscreen) {
+        //full video
+        $("#player_spotlight").css('padding','15px 0 15px 0').css({'margin':'0 auto', 'height':'auto'});
+        $("#player_container_border").css('padding','9px 9px 8px 9px');
+        offset = 94 + player_height;
+    } else {
+        //$("#player_spotlight").hide();
+        $("#player_spotlight").find("*").addBack().css({"padding":"0", "margin":"0", "border":"0"});
+        $("#container").css("margin", "0");
+        player_height = viewportHeight;
+        player_width = viewportWidth;
+    }
+    $("#player_container").height(player_height).width(player_width);
+    $("#player").height(player_height).width(player_width+2);
+    $("#player_container_border").width(player_width+2);
+    //var list_height = viewportHeight - offset - 10
+    $("#search_container,#playlist_container").height(viewportHeight - offset - 10);
+    //$("#playlist_container").height(viewportHeight - offset - 10);
+    ul_height = viewportHeight - offset - 10 - 52;
+
+    //TODO: use facebook style auto-hiding scrollbars
+//			if ((playlist.length * 42) < ul_height){
+//				//console.log("setting UL height to "+ul_height);
+//				$("#sortable_playlist").height(ul_height);
+//			} else {
+//				//console.log("setting UL height to auto");
+//				$("#sortable_playlist").height('auto');
+//			}
+
+
+}
+
+function updatePlaylist(e){
+    console.log($("#sortable_playlist li"));
+    i=0;
+    playlist_order = $("#sortable_playlist").sortable('toArray');
+    //console.log(playlist_order);
+    playlist = new Array();
+    for (i in playlist_order){
+        ////console.log(String($("#"+playlist_order[i]+" a").attr("onclick")).split("'")[1]);
+        playlist.push({
+            ext_id: $("#"+playlist_order[i]+" a").attr("rel"),
+            title: $("#"+playlist_order[i]+" .vid_item_title").html()
+        });
+    }
+    //console.log(playlist);
+    $("#sortable_playlist li").each(function (index, value){
+        ////console.log("setting " + $(this).attr('id'));
+        //console.log(value);
+        //$(this).attr("onclick", "openVideo('playlist', "+index+"); return false;");
+        $(this).click(function(){
+            openVideo('playlist', index);
+            return false;
+        });
+        //TODO: THIS IS REALLY SHITTY CODING BECAUSE I AM DRUNK! REVIEW IT
+    });
+    $.ajax({
+        url: "ajax.php",
+        type: 'POST',
+        data: {method: 'update', plid: plid, playlist: playlist},
+        success: function(data){
+            //console.log(data);
+            $("#url").html("tubelab.net/"+data);
+            plid = data;
+            history.pushState({plid: 'data'}, data, data);
+            //alert the user somehow
+        }
+    });
+    resize();
+}
+
+function openVideo(list_type, id){
+    //a little bit of youtube hd trickery for 2 seconds.
+    //$("#player").width(1920);
+    //$("#player").height(1080);
+    //$("#player").css('left','10000px');
+    switch(list_type){
+        case 'searchlist':
+            ext_id = searchlist[id].ext_id;
+            title = searchlist[id].title;
+            break;
+        case 'playlist':
+            ext_id = playlist[id].ext_id;
+            title = playlist[id].title;
+            break;
+        default:
+            alert('You broke the tubes!');
+    }
+    player.loadVideoById(ext_id, 0, "hd720");
+
+    title = title.split('-');
+    artist = title.shift();
+    track = title.join('-');
+
+    starttime = 0;
+    $("#curplaying").html('<div class=mf>'+track+'</div><div class="sf gray">'+artist+'</div>');
+    //TODO do some logic to determine if next video title needs to be updated (if its actually next) or not (if it's more than 1 away)
+    $("#upnext").html('<div class=mf>'+track+'</div><div class="sf gray">'+artist+'</div>');
+    curplaying = {list_type: list_type, id: id};
+    //TODO using above said logic... update nextplaying variable to be from searchlist or playlist... then we can check that on the video end.
+}
+
+
+
+
+
+
+//Angular, yay!
+
+
+var app = angular.module('sortableApp', ['ui.sortable']);
+
+app.factory('socket', function ($rootScope) {
+    var socket = io.connect('//tubelab.net:8888');
+    return {
+        on: function (eventName, callback) {
+            socket.on(eventName, function () {
+                var args = arguments;
+                $rootScope.$apply(function () {
+                    callback.apply(socket, args);
+                });
+            });
+        },
+        emit: function (eventName, data, callback) {
+            socket.emit(eventName, data, function () {
+                var args = arguments;
+                $rootScope.$apply(function () {
+                    if (callback) {
+                        callback.apply(socket, args);
+                    }
+                });
+            })
+        }
+    };
+});
+
+app.controller('ResultsCtrl', function ($scope, socket) {
+
+    $scope.clients = []
+
+    socket.on('connect', function () {
+        socket.emit('client:authenticate', {
+            plid: document.URL.split('/')[3],
+            pin: document.URL.split('/')[4],
+            cookie: getCookie('tubelab'),
+            version: version
+        });
+    });
+
+    socket.on('playlist:add', function (data) {
+
+        var subtext;
+        if (data.model){
+            subtext = data.model
+        } else {
+            subtext = data.browser.name
+        }
+
+        var icon;
+
+        console.log(data.os.name)
+        switch (data.os.name) {
+            case "iOS":
+                icon = "apple"
+                break;
+            case "Android":
+                icon = "android"
+                break;
+            case "Windows Phone":
+                icon = "windows"
+                break;
+            default:
+                icon = "desktop"
+                break;
+        }
+
+        data.icon = icon;
+        data.subtext = subtext;
+
+        $scope.clients.push(data);
+        console.log($scope.clients)
+
+        $('audio')[0].play();
+
+    });
+
+    socket.on('client:add', function (data) {
+
+        var subtext;
+        if (data.model){
+            subtext = data.model
+        } else {
+            subtext = data.browser.name
+        }
+
+        var icon;
+
+        console.log(data.os.name)
+        switch (data.os.name) {
+            case "iOS":
+                icon = "apple"
+                break;
+            case "Android":
+                icon = "android"
+                break;
+            case "Windows Phone":
+                icon = "windows"
+                break;
+            default:
+                icon = "desktop"
+                break;
+        }
+
+        data.icon = icon;
+        data.subtext = subtext;
+
+        $scope.clients.push(data);
+        console.log($scope.clients)
+
+        $('audio')[0].play();
+
+    });
+
+    $scope.results = [{
+        title:'Basshunter - All I Ever Wanted',
+        ext_id:'zf2wbRWb9xI'
+    },
+        {
+            title:'Timestretch - Bassnectar',
+            ext_id:'5M-jOZRe0-8'
+        },
+        {
+            title:"rosana, she's a sexy mama",
+            ext_id:'v0aRb4rAq0I'
+        },
+        {
+            title:"turn ",
+            ext_id:'HMUDVMiITOU'
+        },
+        {
+            title:"turn down. ",
+            ext_id:'HMUDVMiITOU'
+        },
+        {
+            title:"turn down. for ",
+            ext_id:'HMUDVMiITOU'
+        },
+        {
+            title:"turn down. for what?",
+            ext_id:'HMUDVMiITOU'
+        }
+    ];
+
+    $scope.playlist = [
+        {
+            title:'PL learn angular',
+            ext_id:'bFClhxM7LY4',
+            subtitle: 'panda video!'
+        },
+        {
+            title:'PL tim mcgraw',
+            ext_id:'bFClhxM7LY4'
+        },
+        {
+            title:'PL stuff',
+            ext_id:'bFClhxM7LY4'
+        },
+        {
+            title:'PL blah',
+            ext_id:'bFClhxM7LY4'
+        }
+    ];
+
+
+
+    $scope.sortableOptions = {
+        revert: 100,
+        helper: "clone",
+        placeholder: "ui-state-highlight",
+        connectWith: ".sortable"
+    };
+
+    $scope.$watch('playlist', function(newValue, oldValue) {
+        //skip this logic if the change was caused by another client.
+        if ($scope.externalChange) {
+            $scope.externalChange = false;
+            return;
+        }
+
+        socket.emit('playlist:sync', {
+            playlist: $scope.playlist
+        });
+//                for(i=0; i<newValue.length; i++){
+//                    //TODO: diff the old playlist with the new, find what changed, and only send that.
+//                    // ALSO hash the playlist, compare with hash from server, and figure out if we need to re-sync.
+//                }
+    }, true);
+
+    $scope.$watch('query', function() {
+        socket.emit('search:query', {
+            query: $scope.query
+        });
+    });
+
+    socket.on('search:results', function(data){
+        //TODO: !! race condition can present a problem.. make sure most recent result set is displayed
+        $scope.results = data;
+    });
+
+    socket.on('playlist:sync', function(data){
+        $scope.externalChange = true;
+        $scope.playlist = data;
+    });
+
+    socket.on('playlist:play', function(data){
+        player.loadVideoById(data.ext_id, 0, "hd720");
+    });
+
+
+    $scope.openVideo = function(result) {
+        player.loadVideoById(result.ext_id, 0, "hd720");
+    };
+
+});

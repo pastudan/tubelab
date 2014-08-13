@@ -154,40 +154,51 @@ io.sockets.on('connection', function (socket) {
     });
 
     socket.on('search:query', function(data){
-        if (typeof search[data.query] == "undefined"){
-            var options = {
-                url: "http://gdata.youtube.com/feeds/api/videos?q="+data.query+"&alt=json&start-index=1&max-results=25&v=2",
-                json: true
-            }
-            request.get(options, function (error, response, body) {
-//                console.log(JSON.stringify( body, null, 2 ));
-//                console.log(body.feed.openSearch$totalResults.$t)
-                if (!error){
-                    if (body.feed.openSearch$totalResults.$t > 0) {
-                        search[data.query] = [];
-                        for (i=0; i<body.feed.entry.length; i++){
-                            search[data.query].push({
-                                title: body.feed.entry[i].title.$t,
-                                ext_id: body.feed.entry[i].media$group.yt$videoid.$t
-                            });
-                        }
-                    } else {
-                        search[data.query] = [{
-                            title: "No results found...",
-                            subtitle: "Instead, here's a baby panda",
-                            ext_id: "FzRH3iTQPrk"
-                        }];
-                    }
-                    console.log(search[data.query]);
-                    socket.emit('search:results', search[data.query]);
-                } else {
-                    console.log("response: "+response, "body: "+body);
-                    throw new Error("possible error parsing json? .. error: "+error);
+        if (typeof data.query != "undefined"){
+            var query = data.query;
+            if (typeof search[query] == "undefined"){
+                var options = {
+                    url: "http://gdata.youtube.com/feeds/api/videos?q="+query+"&alt=json&start-index=1&max-results=25&v=2",
+                    json: true
                 }
-            })
+                if (!query){
+                    console.log(search[query]);
+                    socket.emit('search:results', search[query]);
+                } else {
+                    request.get(options, function (error, response, body) {
+        //                console.log(JSON.stringify( body, null, 2 ));
+        //                console.log(body.feed.openSearch$totalResults.$t)
+                        if (!error){
+                            if (body.feed.openSearch$totalResults.$t > 0) {
+                                search[query] = [];
+                                for (i=0; i<body.feed.entry.length; i++){
+                                    search[query].push({
+                                        title: body.feed.entry[i].title.$t,
+                                        ext_id: body.feed.entry[i].media$group.yt$videoid.$t
+                                    });
+                                }
+                            } else {
+                                search[query] = [{
+                                    title: "No results found...",
+                                    subtitle: "Instead, here's a baby panda",
+                                    ext_id: "FzRH3iTQPrk"
+                                }];
+                            }
+                            console.log(search[query]);
+                            socket.emit('search:results', search[query]);
+                        } else {
+                            console.log("response: "+response, "body: "+body);
+                            throw new Error("possible error parsing json? .. error: "+error);
+                        }
+                    })
+                }
+            } else {
+                console.log(search[query]);
+                socket.emit('search:results', search[query]);
+            }
         } else {
-            console.log(search[data.query]);
-            socket.emit('search:results', search[data.query]);
+            console.log(search[query]);
+            socket.emit('search:results', []);
         }
     });
 
