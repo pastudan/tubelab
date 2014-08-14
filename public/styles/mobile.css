@@ -32,9 +32,12 @@ header .menu-bars{
     float: left;
 }
 header .currently-playing{
-    width: 28%;
+    width: 40%;
     margin-top: 1.5%;
     overflow-x: hidden;
+}
+header .currently-playing span{
+    white-space: nowrap;
 }
 header .search-keyboard-hack{
     position: absolute;
@@ -52,6 +55,7 @@ header .search-keyboard-hack.fake-hidden{
 
 header .search-container{
     width: 80%;
+    margin-left: 5%;
 }
 header .search-container input{
     border: none;
@@ -73,7 +77,8 @@ header .control-item{
     width: 15%;
 }
 header .control-item:active{
-    background: #8B0000;
+    /*background: #8B0000;*/
+    /*TODO: this could work, but might require js?*/
 }
 .playlist-wrapper{
     /*TODO: fix this*/
@@ -83,11 +88,24 @@ header .control-item:active{
 .playlist-wrapper ul{
     height: 100%;
     list-style: none;
-    color: white;
+    color: #C8C7C6;
 }
 .playlist-wrapper li{
-    height: 12%;
+    height: 50px;
     clear: both;
+}
+.playlist-wrapper li.playing-currently{
+    border-left: 2px solid #00FFFF;
+
+    background: -moz-linear-gradient(left,  rgba(0,255,255,0.2) 0%, rgba(125,185,232,0) 100%);
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,rgba(0,255,255,0.2)), color-stop(100%,rgba(125,185,232,0)));
+    background: -webkit-linear-gradient(left,  rgba(0,255,255,0.2) 0%,rgba(125,185,232,0) 100%);
+    background: -o-linear-gradient(left,  rgba(0,255,255,0.2) 0%,rgba(125,185,232,0) 100%);
+    background: -ms-linear-gradient(left,  rgba(0,255,255,0.2) 0%,rgba(125,185,232,0) 100%);
+    background: linear-gradient(to right,  rgba(0,255,255,0.2) 0%,rgba(125,185,232,0) 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3300ffff', endColorstr='#007db9e8',GradientType=1 );
+
+
 }
 .playlist-wrapper .vid_item{
     height: 100%;
@@ -99,28 +117,42 @@ header .control-item:active{
     margin: 1%;
     border-radius: 5px;
     background-position: center center;
+    position: relative;
+    overflow: hidden;
+}
+.playlist-wrapper .thumb img {
+    margin-top:-15px;
+    position: absolute;
+    z-index: 100;
 }
 
 .playlist-wrapper .vid_item_title {
-    padding: 7% 0 0 3%;
+    padding: 6% 0 2% 2%;
     float: left;
-    font-size: 24px;
+    font-size: 16px;
     width: 70%;
     overflow: hidden;
+    white-space: nowrap
 }
 
 .results-wrapper{
-    /*TODO: fix this*/
-    height: 92%;
+    height: 80%;
+    width: 90%;
+    left: 5%;
+    box-shadow: 5px 5px 5px #7E7975,-5px 5px 5px #7E7975;
+    opacity: 0.98;
     overflow-y: scroll;
+    position: absolute;
+    z-index: 200;
+    background-color: #383632;
 }
 .results-wrapper ul{
     height: 100%;
     list-style: none;
-    color: white;
+    color: #C8C7C6;
 }
 .results-wrapper li{
-    height: 12%;
+    height: 50px;
     clear: both;
 }
 .results-wrapper .vid_item{
@@ -133,14 +165,77 @@ header .control-item:active{
     margin: 1%;
     border-radius: 5px;
     background-position: center center;
+    overflow: hidden;
+    position: relative;
+}
+.results-wrapper .thumb img {
+    height: 80px;
+    position: absolute;
+    margin: -15px;
 }
 
 .results-wrapper .vid_item_title {
-    padding: 7% 0 0 3%;
+    padding: 6% 0 2% 2%;
     float: left;
-    font-size: 24px;
+    font-size: 16px;
     width: 70%;
     overflow: hidden;
+    white-space: nowrap
+}
+
+.add-play-dialog{
+    height: 92%;
+    background-color: rgba(28, 26, 24, 0.9);
+    position: absolute;
+    z-index: 150;
+}
+.add-play-dialog h1{
+    color: white;
+    padding: 10px;
+    overflow: hidden;
+    white-space: nowrap;
+    position: absolute;
+    background-color: #1C1A18;
+    opacity: .8;
+    width: 100%;
+}
+.add-play-dialog .thumb{
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+}
+.add-play-dialog .thumb img{
+    margin: -10% 0;
+}
+.add-play-dialog button{
+    width: 50%;
+    position: absolute;
+    bottom: 0;
+    padding: 12px;
+    border: none;
+    font-size: 20px;
+    opacity: .8;
+    color: white;
+    margin: 0;
+}
+.add-play-dialog button.play{
+    background-color: #7E7975;
+    left: 0
+}
+.add-play-dialog button.add{
+    background-color: #8B0000;
+    right: 0
+}
+
+.add-play-dialog .cancel{
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding: 10px 0 20px;
+    color: white;
+    background-color: #7E7975;
+    opacity: 0.5;
 }
 
 

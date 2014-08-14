@@ -21,19 +21,9 @@ app.directive('focusMe', function($timeout, $parse) {
             scope.$watch(model, function(value) {
                 if(value === true) {
                     $timeout(function() {
-//                                        element[0].focus();
-
-                        $(element[0]).focus();
+                        $(element[0]).select();
                     });
-                    window.setTimeout(function(){
-                        $(element[0]).click();
-                    },2000)
                 }
-            });
-            // on blur event:
-            element.bind('blur', function() {
-                console.log('blur');
-                scope.$apply(model.assign(scope, false));
             });
         }
     };
@@ -65,6 +55,11 @@ app.factory('socket', function ($rootScope) {
 
 app.controller('ResultsCtrl', function ($scope, socket) {
 
+    // These are not necessarily the same thing.. if you temporarily play a search video, then it won't have a playlist index
+    $scope.currentlyPlayingIndex = 0;
+    $scope.currentlyPlaying;
+    $scope.isPlaying = true; // TODO: this needs to be initialized by the node app.
+
     $scope.clients = []
 
     socket.on('connect', function () {
@@ -72,7 +67,7 @@ app.controller('ResultsCtrl', function ($scope, socket) {
             plid: document.URL.split('/')[3],
             pin: document.URL.split('/')[4],
             cookie: getCookie('tubelab'),
-            version: "<?php echo $version; ?>"
+            version: version
         });
     });
 
@@ -85,43 +80,6 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     socket.on('search:results', function(data){
         //TODO: !! race condition can present a problem.. make sure most recent result set is displayed
         $scope.results = data;
-    });
-
-    socket.on('playlist:add', function (data) {
-
-        var subtext;
-        if (data.model){
-            subtext = data.model
-        } else {
-            subtext = data.browser.name
-        }
-
-        var icon;
-
-        console.log(data.os.name)
-        switch (data.os.name) {
-            case "iOS":
-                icon = "apple"
-                break;
-            case "Android":
-                icon = "android"
-                break;
-            case "Windows Phone":
-                icon = "windows"
-                break;
-            default:
-                icon = "desktop"
-                break;
-        }
-
-        data.icon = icon;
-        data.subtext = subtext;
-
-        $scope.clients.push(data);
-        console.log($scope.clients)
-
-        $('audio')[0].play();
-
     });
 
     socket.on('client:add', function (data) {
@@ -162,23 +120,6 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     });
 
     $scope.playlist = [
-        {
-            title:'PL learn angular',
-            ext_id:'bFClhxM7LY4',
-            subtitle: 'panda video!'
-        },
-        {
-            title:'PL tim mcgraw',
-            ext_id:'bFClhxM7LY4'
-        },
-        {
-            title:'PL stuff',
-            ext_id:'bFClhxM7LY4'
-        },
-        {
-            title:'PL blah',
-            ext_id:'bFClhxM7LY4'
-        }
     ];
 
 
@@ -202,14 +143,56 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     socket.on('playlist:sync', function(data){
         $scope.externalChange = true;
         $scope.playlist = data;
+        console.log(data)
     });
 
+    socket.on('playlist:toggleplayback', function(data){
+        $scope.isPlaying = data;
+    });
 
+    socket.on('playlist:playing', function(data){
+        $scope.currentlyPlayingIndex = data.index;
+        $scope.currentlyPlaying = {
+            title: data.playing.title.split(' - ')[1],
+            artist: data.playing.title.split(' - ')[0]
+        }
+        if (!data.playing.stored){
+            //todo: clean this up
+            // if it's a fresh request, flip the pause boolean
+            $scope.isPlaying = true;
+        }
+    });
 
-    $scope.remoteOpenVideo = function(result) {
+    $scope.remoteOpenVideo = function(result, index) {
+        console.log(result)
         socket.emit('playlist:play', {
-            ext_id: result.ext_id
+            video: result,
+            index: index
         });
+        $scope.showSearchField = false;
+        $scope.showAddPlayDialog = false;
     };
+
+    $scope.addOrPlay = function(result) {
+        $scope.showSearchField = false;
+        $scope.showAddPlayDialog = true;
+        $scope.selected_result = result;
+    };
+
+    $scope.addVideo = function(result) {
+        $scope.playlist.push(result);
+        $scope.showAddPlayDialog = false;
+        $(".playlist-wrapper").animate({scrollTop:$(".playlist-wrapper")[0].scrollHeight}, 1000);
+    }
+
+    $scope.playNext = function() {
+        var index = $scope.currentlyPlayingIndex + 1;
+        $scope.remoteOpenVideo($scope.playlist[index], index);
+    };
+
+    $scope.togglePlayback = function(){
+        $scope.isPlaying = !$scope.isPlaying;
+        socket.emit('playlist:toggleplayback', $scope.isPlaying);
+    }
 
 });

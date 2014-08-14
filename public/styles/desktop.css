@@ -12,7 +12,7 @@ body {
     overflow: hidden;
     text-align: center;
     font-family: "Lucida Grande", tahoma, arial, sans-serif;
-    color: white;
+    color: #C8C7C6;
     margin: 0;
     padding: 0;
 }
@@ -22,7 +22,7 @@ input, textarea{
 }
 
 a {
-    color: white;
+    color: #C8C7C6;
     text-decoration: none;
 }
 
@@ -379,6 +379,7 @@ h2 {
     width: 285px;
     height: 20px;
     overflow: hidden;
+    white-space: nowrap;
 }
 
 .thumb {

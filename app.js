@@ -82,11 +82,18 @@ io.sockets.on('connection', function (socket) {
     socket.on('playlist:play', function(data){
         //todo: some logic could go here to prevent abuse.
         // ...maybe a counter to log number of song plays / client
-        socket.broadcast.emit('playlist:play', {
-            ext_id: data.ext_id
-        });
+        socket.broadcast.emit('playlist:play', data);
     });
 
+    socket.on('playlist:toggleplayback', function(data){
+        playlists[this.plid].isPlaying = data;
+        socket.broadcast.emit('playlist:toggleplayback', data);
+    });
+
+    socket.on('playlist:playing', function(data){
+        playlists[this.plid].playing = data;
+        socket.broadcast.emit('playlist:playing', data);
+    });
 
     socket.on('client:authenticate', function (data) {
         console.log("AUTHENTICATING:");
@@ -150,6 +157,11 @@ io.sockets.on('connection', function (socket) {
 
         if (playlists[this.plid].songs.length > 0){
             socket.emit('playlist:sync', playlists[this.plid].songs);
+            //TODO: also check that the below properties exist.
+            var playing = playlists[data.plid].playing;
+            playing.stored = true; //todo: surely there's a cleaner way?
+            socket.emit('playlist:playing', playing);
+            socket.emit('playlist:toggleplayback', playlists[data.plid].isPlaying);
         }
     });
 

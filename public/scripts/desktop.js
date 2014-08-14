@@ -66,7 +66,7 @@ $(document).keypress(function(e){
 $(document).ready(function (){
 
     $(".collaborate .qr").qrcode({
-        text : "tubelab.net/abcd/1234",
+        text : "tubelab.net/bbq1/2822",
         minVersion: 4,
         ecLevel: 'H',
         fill: "#262626",
@@ -198,10 +198,10 @@ function onYouTubePlayerReady(playerId) {
 
 function playerStateChange(state){
     if (state == 0){
-        //video is ended.. go to next in playlist..
-        //openVideo("tKi9Z-f6qX4");
+        //video has ended.. go to next in playlist..
         //console.log('opening next video....');
-        openVideo(curplaying.list_type, curplaying.id+1);
+        var scope = angular.element($("html")).scope();
+        scope.playNext();
     }
 }
 
@@ -408,6 +408,8 @@ app.factory('socket', function ($rootScope) {
 
 app.controller('ResultsCtrl', function ($scope, socket) {
 
+    $scope.currentlyPlayingIndex = 0;
+    $scope.currentlyPlaying;
     $scope.clients = []
 
     socket.on('connect', function () {
@@ -493,53 +495,10 @@ app.controller('ResultsCtrl', function ($scope, socket) {
 
     });
 
-    $scope.results = [{
-        title:'Basshunter - All I Ever Wanted',
-        ext_id:'zf2wbRWb9xI'
-    },
+    $scope.playlist = [
         {
             title:'Timestretch - Bassnectar',
             ext_id:'5M-jOZRe0-8'
-        },
-        {
-            title:"rosana, she's a sexy mama",
-            ext_id:'v0aRb4rAq0I'
-        },
-        {
-            title:"turn ",
-            ext_id:'HMUDVMiITOU'
-        },
-        {
-            title:"turn down. ",
-            ext_id:'HMUDVMiITOU'
-        },
-        {
-            title:"turn down. for ",
-            ext_id:'HMUDVMiITOU'
-        },
-        {
-            title:"turn down. for what?",
-            ext_id:'HMUDVMiITOU'
-        }
-    ];
-
-    $scope.playlist = [
-        {
-            title:'PL learn angular',
-            ext_id:'bFClhxM7LY4',
-            subtitle: 'panda video!'
-        },
-        {
-            title:'PL tim mcgraw',
-            ext_id:'bFClhxM7LY4'
-        },
-        {
-            title:'PL stuff',
-            ext_id:'bFClhxM7LY4'
-        },
-        {
-            title:'PL blah',
-            ext_id:'bFClhxM7LY4'
         }
     ];
 
@@ -585,12 +544,37 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     });
 
     socket.on('playlist:play', function(data){
-        player.loadVideoById(data.ext_id, 0, "hd720");
+        //todo: get the index from mobile so we can play next
+        $scope.openVideo(data.video, data.index);
     });
 
+    socket.on('playlist:toggleplayback', function(data){
+        $scope.isPlaying = data;
+        if (data){
+            player.playVideo();
+        } else {
+            player.pauseVideo();
+        }
+    });
 
-    $scope.openVideo = function(result) {
-        player.loadVideoById(result.ext_id, 0, "hd720");
+    $scope.openVideo = function(videoObject, index) {
+        if (typeof index !== 'undefined'){
+            $scope.currentlyPlayingIndex = index;
+            console.log("Playing "+index+"th video from playlist!")
+        } else {
+            console.log("Playing video from search or other unindexed source")
+        }
+        $scope.currentlyPlaying = videoObject;
+        player.loadVideoById(videoObject.ext_id, 0, "hd720");
+        socket.emit('playlist:playing', {
+            playing: videoObject,
+            index: index
+        });
+    };
+
+    $scope.playNext = function() {
+        var index = $scope.currentlyPlayingIndex + 1;
+        $scope.openVideo($scope.playlist[index], index);
     };
 
 });

@@ -8,12 +8,12 @@
         require("mobile.php");
         die();
     }
-	
-	if(!isset($_COOKIE["tubelab"])){
-		$_COOKIE["tubelab"] = $user_string = rand_string(12);
-		setcookie('tubelab', $user_string, 2116303200);
-//		add_user($user_string, $_SERVER['REMOTE_ADDR']);
-	}
+//
+//	if(!isset($_COOKIE["tubelab"])){
+//		$_COOKIE["tubelab"] = $user_string = rand_string(12);
+//		setcookie('tubelab', $user_string, 2116303200);
+////		add_user($user_string, $_SERVER['REMOTE_ADDR']);
+//	}
 
     //TODO: log main page load here.
 	

@@ -35,6 +35,9 @@
     <script src="/scripts/desktop.js"></script>
     <!--/IF DEV-->
 
+    <script>
+        version = "<?php echo $version; ?>";
+    </script>
 </head>
 
 
@@ -48,7 +51,7 @@
     <p>Let your friends help create an awesome playlist. Or just <a href="#">share.</a></p>
 
     <div class="share-container">
-        <div class="url">tubelab.net/ei3k/2402</div>
+        <div class="url">tubelab.net/bbq1/2822</div>
         <div class="qr"></div>
         <div class="or">or</div>
     </div>
@@ -153,7 +156,7 @@
             </div>
         </div>
         <ul ui-sortable="sortableOptions" ng-model="playlist" id='sortable_playlist' class='sortable'>
-            <li ng-repeat="result in playlist" class="vid_item_link" ng-click="openVideo(result)">
+            <li ng-repeat="result in playlist" class="vid_item_link" ng-click="openVideo(result, $index)">
                 <div class='vid_item cf'>
                     <div class='thumb'>
                         <img src='//img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
