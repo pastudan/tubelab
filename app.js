@@ -159,7 +159,7 @@ io.sockets.on('connection', function (socket) {
             socket.emit('playlist:sync', playlists[this.plid].songs);
             //TODO: also check that the below properties exist.
             var playing = playlists[data.plid].playing;
-            playing.stored = true; //todo: surely there's a cleaner way?
+            //playing.stored = true; //todo: surely there's a cleaner way?
             socket.emit('playlist:playing', playing);
             socket.emit('playlist:toggleplayback', playlists[data.plid].isPlaying);
         }
@@ -200,7 +200,7 @@ io.sockets.on('connection', function (socket) {
                             socket.emit('search:results', search[query]);
                         } else {
                             console.log("response: "+response, "body: "+body);
-                            throw new Error("possible error parsing json? .. error: "+error);
+                            //throw new Error("possible error parsing json? .. error: "+error);
                         }
                     })
                 }
