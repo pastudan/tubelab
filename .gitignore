@@ -1,2 +1,4 @@
 apache_error.log
 apache_access.log
+.idea
+tubelab.iml
