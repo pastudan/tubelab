@@ -29,40 +29,9 @@ function makeplid() {
 
 io.sockets.on('connection', function (socket) {
 
-    //todo: actually store this new pin in a cache somewhere
-    socket.broadcast.emit('client:newpin', Math.floor((Math.random() * 10000)));
-
     this.plid = '';
 
     console.log("CLIENT CONNECTED: " + socket.id);
-
-
-    socket.on('control', function (data) {
-        //console.log(playlists[this.plid].clients); return;
-        if (this.plid == '') {
-            //apparently not associated with a plid...
-            //TODO: disconnect here?
-            console.log("NOT ASSOCIATED WITH A PLID")
-        } else {
-            //check permissions
-            switch (data.controlAction) {
-                case "prev":
-                case "next":
-                case "play-pause":
-                    console.log("Broadcasting {" + data.controlAction + "} action to all clients associated with plid");
-                    //TODO: BROADCAST TO ONLY playlists[plid].clients.. started (maybe finished?) below
-                    //console.log(socket.id);
-                    //console.log(io.sockets);
-                    for (key in playlists[this.plid].clients) {
-                        io.sockets.socket(key).emit('control', {controlAction: data.controlAction});
-                    }
-                    break;
-                default:
-                    console.log("Control action was not understood");
-                    break;
-            }
-        }
-    });
 
 //
 //    TODO: flesh this out:
@@ -83,7 +52,9 @@ io.sockets.on('connection', function (socket) {
                     title: data.playlist[i].title
                 })
             }
-            socket.broadcast.emit('playlist:sync', playlists[this.plid].songs);
+            for (key in playlists[this.plid].clients) {
+                io.sockets.socket(key).emit('playlist:sync', playlists[this.plid].songs);
+            }
         } else {
             console.log("error, no PLID")
         }
@@ -93,7 +64,6 @@ io.sockets.on('connection', function (socket) {
     socket.on('playlist:play', function(data){
         //todo: some logic could go here to prevent abuse.
         // ...maybe a counter to log number of song plays / client
-//        socket.broadcast.emit('playlist:play', data);
         for (key in playlists[this.plid].clients) {
             io.sockets.socket(key).emit('playlist:play', data);
         }
@@ -101,12 +71,16 @@ io.sockets.on('connection', function (socket) {
 
     socket.on('playlist:toggleplayback', function(data){
         playlists[this.plid].isPlaying = data;
-        socket.broadcast.emit('playlist:toggleplayback', data);
+        for (key in playlists[this.plid].clients) {
+            io.sockets.socket(key).emit('playlist:toggleplayback', data);
+        }
     });
 
     socket.on('playlist:playing', function(data){
         playlists[this.plid].playing = data;
-        socket.broadcast.emit('playlist:playing', data);
+        for (key in playlists[this.plid].clients) {
+            io.sockets.socket(key).emit('playlist:playing', data);
+        }
     });
 
     socket.on('client:newpin', function () {
@@ -127,12 +101,16 @@ io.sockets.on('connection', function (socket) {
             socket.emit('playlist:newplid', plid);
         }
 
-
         if (typeof playlists[plid] == 'undefined') {
             playlists[plid] = {
                 clients: {},
                 songs  : []
             };
+        }
+
+        //todo: only if a PIN has been used and was correct
+        for (key in playlists[plid].clients) {
+            io.sockets.socket(key).emit('client:newpin', Math.floor((Math.random() * 10000)));
         }
 
         //todo: set cookie if not set (pin or not)
@@ -164,13 +142,15 @@ io.sockets.on('connection', function (socket) {
         genericModelName = genericModelName || model;
         var name = defaultNames[Math.floor(Math.random() * (defaultNames.length))];
 
-        socket.broadcast.emit('client:add', {
-            model: genericModelName,
-            browser  : browser,
-            os       : os,
-            name     : name
-        });
 
+        for (key in playlists[plid].clients) {
+            io.sockets.socket(key).emit('client:add', {
+                model: genericModelName,
+                browser  : browser,
+                os       : os,
+                name     : name
+            });
+        }
 
         playlists[plid].clients[socket.id] = {
             permissions   : permissions,
