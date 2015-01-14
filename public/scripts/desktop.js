@@ -411,7 +411,8 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     $scope.currentlyPlayingIndex = 0;
     $scope.currentlyPlaying;
     $scope.clients = [];
-    $scope.muteVideo = false;
+
+    $scope.muteVideo = (location.search.split('mute=')[1]||'').split('&')[0];
 
     socket.on('connect', function () {
         socket.emit('client:authenticate', {
