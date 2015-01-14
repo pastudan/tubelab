@@ -1,4 +1,7 @@
 apache_error.log
 apache_access.log
 .idea
+.idea/codeStyleSettings.xml
 tubelab.iml
+
+public/scripts/config.js

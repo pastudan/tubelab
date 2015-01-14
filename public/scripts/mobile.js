@@ -30,7 +30,7 @@ app.directive('focusMe', function($timeout, $parse) {
 });
 
 app.factory('socket', function ($rootScope) {
-    var socket = io.connect('//tubelab.net:8888');
+    var socket = io.connect('//' + config.socket_host);
     return {
         on: function (eventName, callback) {
             socket.on(eventName, function () {

@@ -12,6 +12,7 @@
     <script>
         version = "<?php echo $version; ?>";
     </script>
+    <script src="/scripts/config.js"></script>
     <script src="/scripts/mobile.js"></script>
 </head>
 <body>

@@ -32,12 +32,12 @@
     <script src="/scripts/cdn/jquery.qrcode.min.js"></script>
     <script src="/scripts/cdn/socket.io.min.js"></script>
     <script src="/scripts/jquery.qrcode-0.7.0.min.js"></script>
-    <script src="/scripts/desktop.js"></script>
     <!--/IF DEV-->
-
     <script>
         version = "<?php echo $version; ?>";
     </script>
+    <script src="/scripts/config.js"></script>
+    <script src="/scripts/desktop.js"></script>
 </head>
 
 
@@ -88,9 +88,10 @@
 
 <div id="container" class="cf">
     <div id="timetooltip" class="sf"></div>
-    <div id="player_spotlight">
+    <div id="player_spotlight" ng-show="!muteVideo">
         <div id="player_container_border">
-            <div id="player_container">
+            <div id="player_container" ng-mouseenter="showMuteButton=true" ng-mouseleave="showMuteButton=false">
+                <div class="mute-video" ng-show="showMuteButton" ng-click="muteVideo = !muteVideo">Mute Video</div>
 
                 <div id="ytapiplayer">
                     You need Flash player 9+ and JavaScript enabled to view this video.
@@ -156,7 +157,7 @@
             </div>
         </div>
         <ul ui-sortable="sortableOptions" ng-model="playlist" id='sortable_playlist' class='sortable'>
-            <li ng-repeat="result in playlist" class="vid_item_link" ng-click="openVideo(result, $index)">
+            <li ng-repeat="result in playlist track by $index" class="vid_item_link" ng-click="remoteOpenVideo(result, $index)">
                 <div class='vid_item cf'>
                     <div class='thumb'>
                         <img src='//img.youtube.com/vi/{{result.ext_id}}/default.jpg'>

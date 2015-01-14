@@ -438,6 +438,13 @@ li {
     border-radius: 5px;
 }
 
+.mute-video{
+    position: absolute;
+    top: 0;
+    padding: 10px;
+    background-color: rgba(255,0,0,0.8);
+}
+
 
 /*Clearfix from http://nicolasgallagher.com/micro-clearfix-hack/*/
 .cf:before,

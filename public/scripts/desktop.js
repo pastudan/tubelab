@@ -383,7 +383,7 @@ function openVideo(list_type, id){
 var app = angular.module('sortableApp', ['ui.sortable']);
 
 app.factory('socket', function ($rootScope) {
-    var socket = io.connect('//tubelab.net:8888');
+    var socket = io.connect('//' + config.socket_host);
     return {
         on: function (eventName, callback) {
             socket.on(eventName, function () {
@@ -410,7 +410,8 @@ app.controller('ResultsCtrl', function ($scope, socket) {
 
     $scope.currentlyPlayingIndex = 0;
     $scope.currentlyPlaying;
-    $scope.clients = []
+    $scope.clients = [];
+    $scope.muteVideo = false;
 
     socket.on('connect', function () {
         socket.emit('client:authenticate', {
@@ -570,6 +571,23 @@ app.controller('ResultsCtrl', function ($scope, socket) {
             playing: videoObject,
             index: index
         });
+    };
+
+    $scope.remoteOpenVideo = function(result, index) {
+        console.log(result)
+        socket.emit('playlist:play', {
+            video: result,
+            index: index
+        });
+
+        //todo: perhaps put the "playing" logic inside of "play". "playing" is only used for mobile anyway
+        socket.emit('playlist:playing', {
+            playing: result,
+            index: index
+        });
+
+        $scope.currentlyPlaying = result;
+        player.loadVideoById(result.ext_id, 0, "hd720");
     };
 
     $scope.playNext = function() {
