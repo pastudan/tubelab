@@ -26,43 +26,6 @@ $(document).keypress(function(e){
     }
 });
 
-//        THIS
-
-//        var socket = io.connect('http://tubelab.net:8888');
-//        socket.on('connect', function () {
-//            socket.emit('authenticate', {
-//                plid: document.URL.split('/')[3],
-//                pin: document.URL.split('/')[4],
-//                cookie: getCookie('tubelab'),
-//                version: "<?php echo $version; ?>"
-//            });
-//        });
-//        socket.on('control', function (data) {
-//            //alert(data.controlAction);
-//            console.log(data);
-//            $(".control[data-action=prev]").animate({paddingTop: "0"}, 200, function(){
-//                $(this).css("padding-top", "3%")
-//            });
-//            switch (data.controlAction){
-//                case "next":
-//                    openVideo(curplaying.list_type, curplaying.id+1);
-//                    break;
-//                case "prev":
-//                    openVideo(curplaying.list_type, curplaying.id-1);
-//                    break;
-//                case "play-pause":
-//                    if (player.getPlayerState() == 1){
-//                        player.pauseVideo();
-//                    } else if(player.getPlayerState() == 2) {
-//                        player.playVideo();
-//                    }
-//                    break;
-//                default:
-//                    console.log("received command not understood");
-//            }
-//
-//        });
-
 $(document).ready(function (){
 
     $(".collaborate .qr").qrcode({
@@ -109,32 +72,7 @@ $(document).ready(function (){
 
     resize();
     plid = document.URL.split('/')[3].split('?')[0];
-//			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
-//			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
-//			if (plid != ''){
-//				//console.log('plid found... ');
-//				$("#url").html("tubelab.net/"+plid);
-//				$.ajax({
-//					url: "ajax.php",
-//					type: 'POST',
-//					data: {method: 'get', plid: plid},
-//					success: function(data){
-//						playlist = $.parseJSON(data);
-////						for(i=0;i<playlist.length;i++){
-////							title = playlist[i].title.split("-");
-////							artist = title.shift();
-////							track = title.join('-');
-////							$sortable_playlist.append("<li id='video"+i+"'><a class='vid_item_link' style='clear:both;' rel='"+playlist[i].ext_id+"' onclick=\"openVideo('playlist',"+i+"); return false;\"><div class='vid_item'><div class='thumb'><img src='http://img.youtube.com/vi/"+playlist[i].ext_id+"/default.jpg' \></div><div class='vid_item_title'>"+playlist[i].title+"</div></div></a></li>");
-////						}
-//						//$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
-//						//$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
-////						openVideo('playlist', 0);
-//						resize();
-//					}
-//				});
-//			} else {
-//				//console.log('no plid found...');
-//			}
+
     $(window).resize(resize);
 
 
@@ -416,8 +354,8 @@ app.controller('ResultsCtrl', function ($scope, socket) {
 
     socket.on('connect', function () {
         socket.emit('client:authenticate', {
-            plid: document.URL.split('/')[3],
-            pin: document.URL.split('/')[4],
+            plid: document.URL.split('/')[3].split('?')[0],
+            pin: document.URL.split('/')[4].split('?')[0],
             cookie: getCookie('tubelab'),
             version: version
         });
