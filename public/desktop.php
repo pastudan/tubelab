@@ -5,7 +5,7 @@
     <link rel="shortcut icon" href="/images/favicon.png"/>
     <link rel="stylesheet" type="text/css" media="all" href="/reset-clearfix.css">
     <link rel="stylesheet" type="text/css" media="all" href="/styles/desktop.css">
-    <link rel="stylesheet" type="text/css" media="all" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.0.3/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" media="all" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
 
     <!--IF PROD-->
     <!--	<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>-->
@@ -51,7 +51,7 @@
     <p>Let your friends help create an awesome playlist. Or just <a href="#">share.</a></p>
 
     <div class="share-container">
-        <div class="url">tubelab.net/bbq1/2822</div>
+        <div class="url">tubelab.net/{{plid}}/{{displayPin}}</div>
         <div class="qr"></div>
         <div class="or">or</div>
     </div>
@@ -59,7 +59,7 @@
     <div class="device-container">
         <h3>Devices</h3>
         <ul class="device-list">
-            <li class='cf' ng-repeat="client in clients">
+            <li class='cf' ng-repeat="client in clients.slice().reverse()">
                 <i class='fa fa-fw fa-{{client.icon}} fl'
                    style='font-size: 38px; color: #1D1D1D; margin-right: 15px'></i>
 
@@ -152,7 +152,8 @@
                     <img src="images/globe_24.png"/>
                 </div>
                 <div id="url">
-                    tubelab.net/2n2w
+                    tubelab.net/{{plid}}
+                    <div class="button" ng-click="collaborate()"><i class="fa fa-share-alt"></i></div>
                 </div>
             </div>
         </div>

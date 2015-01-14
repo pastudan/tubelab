@@ -247,16 +247,17 @@ h2 {
     height: 29px;
 }
 
-#search:hover{
+#search:hover,
+#url:hover{
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
-    background: #efefef;
+    background: #e2e2e2;
 }
 
 #search:focus{
     border: 1px solid #5897fb;
     outline: none;
     box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
-    background: #efefef;
+    background: #f7f7f7;
 }
 
 #playlist_container {
@@ -329,13 +330,13 @@ h2 {
     width: 100%;
     text-align: left;
     vertical-align: middle;
+    position: relative;
+    outline: none;
 }
 
-#url:hover{
-    cursor: text;
-    border: 1px solid #5897fb;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3) inset;
-    background: #efefef url("../images/qr.png") no-repeat 0 20px;
+#url .button{
+    float: right;
+    cursor: pointer;
 }
 
 #url, #search{

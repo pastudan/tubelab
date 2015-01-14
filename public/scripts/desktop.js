@@ -14,10 +14,9 @@ var $sortable_searchlist;
 var starttime;
 var curplaying;
 
-$(document).ready(function (){
-
-    $(".collaborate .qr").qrcode({
-        text : "tubelab.net/bbq1/2822",
+function generateQRCode(plid, pin, extra){
+    $(".collaborate .qr").empty().qrcode({
+        text : "tubelab.net/"+plid+"/"+pin+extra,
         minVersion: 4,
         ecLevel: 'H',
         fill: "#262626",
@@ -33,8 +32,9 @@ $(document).ready(function (){
         fontname: 'Verdana',
         fontcolor: '#AE0000'
     }).children("canvas").height(250);
+}
 
-
+$(document).ready(function (){
 
     $('#fullscreen').click(function () {
         if (screenfull.enabled) {
@@ -225,82 +225,7 @@ function resize(){
 //				$("#sortable_playlist").height('auto');
 //			}
 
-
 }
-
-function updatePlaylist(e){
-    console.log($("#sortable_playlist li"));
-    i=0;
-    playlist_order = $("#sortable_playlist").sortable('toArray');
-    //console.log(playlist_order);
-    playlist = new Array();
-    for (i in playlist_order){
-        ////console.log(String($("#"+playlist_order[i]+" a").attr("onclick")).split("'")[1]);
-        playlist.push({
-            ext_id: $("#"+playlist_order[i]+" a").attr("rel"),
-            title: $("#"+playlist_order[i]+" .vid_item_title").html()
-        });
-    }
-    //console.log(playlist);
-    $("#sortable_playlist li").each(function (index, value){
-        ////console.log("setting " + $(this).attr('id'));
-        //console.log(value);
-        //$(this).attr("onclick", "openVideo('playlist', "+index+"); return false;");
-        $(this).click(function(){
-            openVideo('playlist', index);
-            return false;
-        });
-        //TODO: THIS IS REALLY SHITTY CODING BECAUSE I AM DRUNK! REVIEW IT
-    });
-    $.ajax({
-        url: "ajax.php",
-        type: 'POST',
-        data: {method: 'update', plid: plid, playlist: playlist},
-        success: function(data){
-            //console.log(data);
-            $("#url").html("tubelab.net/"+data);
-            plid = data;
-            history.pushState({plid: 'data'}, data, data);
-            //alert the user somehow
-        }
-    });
-    resize();
-}
-
-function openVideo(list_type, id){
-    //a little bit of youtube hd trickery for 2 seconds.
-    //$("#player").width(1920);
-    //$("#player").height(1080);
-    //$("#player").css('left','10000px');
-    switch(list_type){
-        case 'searchlist':
-            ext_id = searchlist[id].ext_id;
-            title = searchlist[id].title;
-            break;
-        case 'playlist':
-            ext_id = playlist[id].ext_id;
-            title = playlist[id].title;
-            break;
-        default:
-            alert('You broke the tubes!');
-    }
-    player.loadVideoById(ext_id, 0, "hd720");
-
-    title = title.split('-');
-    artist = title.shift();
-    track = title.join('-');
-
-    starttime = 0;
-    $("#curplaying").html('<div class=mf>'+track+'</div><div class="sf gray">'+artist+'</div>');
-    //TODO do some logic to determine if next video title needs to be updated (if its actually next) or not (if it's more than 1 away)
-    $("#upnext").html('<div class=mf>'+track+'</div><div class="sf gray">'+artist+'</div>');
-    curplaying = {list_type: list_type, id: id};
-    //TODO using above said logic... update nextplaying variable to be from searchlist or playlist... then we can check that on the video end.
-}
-
-
-
-
 
 
 //Angular, yay!
@@ -340,13 +265,43 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     $scope.muteVideo = (location.search.split('mute=')[1]||'').split('&')[0];
     $scope.showCollaborate = false;
 
+    function animateCollaboratePanel(plid, pin, animationtime){
+        animationtime = animationtime || 10;
+        if (animationtime < 380){
+            var fakepin = Math.floor((Math.random() * 10000));
+            var extra = "?"+fakepin;
+            setTimeout(function(){
+                $scope.displayPin = fakepin;
+                $scope.$apply();
+                generateQRCode(plid, pin, extra);
+                animateCollaboratePanel(plid, pin, animationtime*1.3);
+            }, animationtime)
+        } else {
+            generateQRCode(plid, pin, '');
+            $scope.displayPin = pin;
+        }
+    }
+
     socket.on('connect', function () {
+        $scope.plid = (document.URL.split('/')[3]||'').split('?')[0];
         socket.emit('client:authenticate', {
-            plid: (document.URL.split('/')[3]||'').split('?')[0],
+            plid: $scope.plid,
             pin: (document.URL.split('/')[4]||'').split('?')[0],
             cookie: getCookie('tubelab'),
             version: version
         });
+    });
+
+    socket.on('playlist:newplid', function (data) {
+        history.pushState({plid: data}, '', data);
+        $scope.plid = data;
+    });
+
+    socket.on('client:newpin', function (data) {
+        $scope.pin = data;
+        if ($scope.showCollaborate){
+            animateCollaboratePanel($scope.plid, $scope.pin);
+        }
     });
 
     socket.on('playlist:add', function (data) {
@@ -501,7 +456,7 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     };
 
     $scope.remoteOpenVideo = function(result, index) {
-        console.log(result)
+        console.log(result);
         socket.emit('playlist:play', {
             video: result,
             index: index
@@ -521,5 +476,11 @@ app.controller('ResultsCtrl', function ($scope, socket) {
         var index = $scope.currentlyPlayingIndex + 1;
         $scope.openVideo($scope.playlist[index], index);
     };
+
+    $scope.collaborate = function(){
+        $scope.showCollaborate = !$scope.showCollaborate;
+        //request new pin
+        socket.emit('client:newpin');
+    }
 
 });

@@ -19,7 +19,18 @@ var defaultNames = [
 ////   console.log("sockets: ", io.sockets);
 //}, 3000);
 
+function makeplid() {
+    var text = "";
+    var possible = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz123456789";
+    for (var i = 0; i < 4; i++)
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+    return text;
+}
+
 io.sockets.on('connection', function (socket) {
+
+    //todo: actually store this new pin in a cache somewhere
+    socket.broadcast.emit('client:newpin', Math.floor((Math.random() * 10000)));
 
     this.plid = '';
 
@@ -76,13 +87,16 @@ io.sockets.on('connection', function (socket) {
         } else {
             console.log("error, no PLID")
         }
-    })
+    });
 
 
     socket.on('playlist:play', function(data){
         //todo: some logic could go here to prevent abuse.
         // ...maybe a counter to log number of song plays / client
-        socket.broadcast.emit('playlist:play', data);
+//        socket.broadcast.emit('playlist:play', data);
+        for (key in playlists[this.plid].clients) {
+            io.sockets.socket(key).emit('playlist:play', data);
+        }
     });
 
     socket.on('playlist:toggleplayback', function(data){
@@ -95,23 +109,39 @@ io.sockets.on('connection', function (socket) {
         socket.broadcast.emit('playlist:playing', data);
     });
 
+    socket.on('client:newpin', function () {
+        //todo: actually store this new pin in a cache somewhere
+        socket.emit('client:newpin', Math.floor((Math.random() * 10000)));
+    });
+
     socket.on('client:authenticate', function (data) {
         console.log("AUTHENTICATING:");
-        if (typeof playlists[data.plid] == 'undefined') {
-            playlists[data.plid] = {
+
+        //associate plid with the socket
+        var plid = this.plid = data.plid;
+        if(plid == ''){
+            //todo: delay the generation of new plid until user adds a song
+            plid = makeplid()
+            while (typeof playlists[plid] != 'undefined')
+                plid = makeplid()
+            socket.emit('playlist:newplid', plid);
+        }
+
+
+        if (typeof playlists[plid] == 'undefined') {
+            playlists[plid] = {
                 clients: {},
                 songs  : []
             };
         }
 
+        //todo: set cookie if not set (pin or not)
         // if password || pin:
         var permissions = 'rw';
         //else
         var permissions = 'r';
 
 
-        //associate plid with the socket
-        this.plid = data.plid;
 
 
 
@@ -142,7 +172,7 @@ io.sockets.on('connection', function (socket) {
         });
 
 
-        playlists[data.plid].clients[socket.id] = {
+        playlists[plid].clients[socket.id] = {
             permissions   : permissions,
             remote_address: socket.handshake.address.address,
             remote_port   : socket.handshake.address.port,
@@ -155,13 +185,13 @@ io.sockets.on('connection', function (socket) {
 
         console.log("client:authenticate: ", data);
 
-        if (playlists[this.plid].songs.length > 0){
-            socket.emit('playlist:sync', playlists[this.plid].songs);
+        if (playlists[plid].songs.length > 0){
+            socket.emit('playlist:sync', playlists[plid].songs);
             //TODO: also check that the below properties exist.
-            var playing = playlists[data.plid].playing;
+            var playing = playlists[plid].playing;
             //playing.stored = true; //todo: surely there's a cleaner way?
             socket.emit('playlist:playing', playing);
-            socket.emit('playlist:toggleplayback', playlists[data.plid].isPlaying);
+            socket.emit('playlist:toggleplayback', playlists[plid].isPlaying);
         }
     });
 
