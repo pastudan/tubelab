@@ -45,7 +45,7 @@
 <!--    <a href="https://github.com/pastudan/tubelab"><img class="github-banner" src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png" alt="Fork me on GitHub"></a>-->
 
 
-<div class="collaborate" ng-class="{'active-devices':clients.length>0}">
+<div class="collaborate" ng-show="showCollaborate" ng-class="{'active-devices':clients.length>0}">
     <h1>Collaborate</h1>
 
     <p>Let your friends help create an awesome playlist. Or just <a href="#">share.</a></p>

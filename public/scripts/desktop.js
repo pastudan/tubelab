@@ -14,18 +14,6 @@ var $sortable_searchlist;
 var starttime;
 var curplaying;
 
-
-
-//todo: take this out!
-$(document).keypress(function(e){
-
-    switch (e.which) {
-        case 113:
-            $(".collaborate").toggle();
-            break;
-    }
-});
-
 $(document).ready(function (){
 
     $(".collaborate .qr").qrcode({
@@ -349,8 +337,8 @@ app.controller('ResultsCtrl', function ($scope, socket) {
     $scope.currentlyPlayingIndex = 0;
     $scope.currentlyPlaying;
     $scope.clients = [];
-
     $scope.muteVideo = (location.search.split('mute=')[1]||'').split('&')[0];
+    $scope.showCollaborate = false;
 
     socket.on('connect', function () {
         socket.emit('client:authenticate', {
