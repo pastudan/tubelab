@@ -108,7 +108,7 @@ $(document).ready(function (){
     $sortable_searchlist = $('#sortable_searchlist');
 
     resize();
-    plid = document.URL.split('/')[3];
+    plid = document.URL.split('/')[3].split('?')[0];
 //			$sortable_playlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable", update: updatePlaylist }).disableSelection();
 //			$sortable_searchlist.sortable({ helper: 'clone', placeholder: "ui-state-highlight", connectWith: ".sortable" }).disableSelection();
 //			if (plid != ''){
