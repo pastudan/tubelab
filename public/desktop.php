@@ -130,7 +130,7 @@
             </div>
         </div>
         <ul ui-sortable="sortableOptions" ng-model="results" id='sortable_searchlist' class='sortable'>
-            <li ng-repeat="result in results" class="vid_item_link" ng-click="openVideo(result)">
+            <li ng-repeat="result in results track by $index" class="vid_item_link" ng-click="remoteOpenVideo(result, $index)">
                 <div class='vid_item cf'>
                     <div class='thumb'>
                         <img src='//img.youtube.com/vi/{{result.ext_id}}/default.jpg'>
