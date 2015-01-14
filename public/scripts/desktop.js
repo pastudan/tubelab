@@ -354,8 +354,8 @@ app.controller('ResultsCtrl', function ($scope, socket) {
 
     socket.on('connect', function () {
         socket.emit('client:authenticate', {
-            plid: document.URL.split('/')[3].split('?')[0],
-            pin: document.URL.split('/')[4].split('?')[0],
+            plid: (document.URL.split('/')[3]||'').split('?')[0],
+            pin: (document.URL.split('/')[4]||'').split('?')[0],
             cookie: getCookie('tubelab'),
             version: version
         });
